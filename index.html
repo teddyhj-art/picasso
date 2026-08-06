@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>게르니카 작업실 — 우리 모둠의 전쟁</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#1c1b18;--smoke:#5b584f;--ash:#98948a;--paper:#f6f4ee;--page:#fffdf8;--line:#d8d4c8;
+--ember:#b3271c;--ember-dk:#8f1f16;
+--pain:#7a2020;--bystand:#54442a;--resist:#2e4a4a;--hope:#3d5c3d;
+--serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;font-size:16px;line-height:1.65}
+.wrap{max-width:960px;margin:0 auto;padding:26px 18px 90px}
+.hide{display:none!important}
+button{font-family:var(--sans);cursor:pointer}
+.btn{background:var(--ember);color:#fff;border:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:2px}
+.btn:hover{background:var(--ember-dk)}
+.btn.ghost{background:none;border:1.5px solid var(--ink);color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+input,select,textarea{font-family:var(--sans);font-size:15.5px;padding:12px 14px;background:var(--page);color:var(--ink);border:1.5px solid var(--line);border-radius:2px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ember);border-color:var(--ember)}
+textarea{resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.row>*{flex:1;min-width:150px}.row .btn{flex:0 0 auto}
+.small{font-size:13px;color:var(--smoke)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-weight:700;padding:13px 24px;border-radius:30px;z-index:99}
+
+/* 표지 */
+.masthead{text-align:center;border-bottom:3px double var(--ink);padding-bottom:22px;margin-bottom:6px}
+.masthead .over{font-size:12px;letter-spacing:.3em;color:var(--ember);font-weight:700}
+.masthead h1{font-family:var(--serif);font-weight:900;font-size:clamp(28px,5vw,46px);margin:8px 0 4px}
+.masthead .under{font-size:14px;color:var(--smoke)}
+.edition{margin-top:10px;font-size:13px;color:var(--ash)}
+
+/* 게이트 */
+.gate{max-width:430px;margin:6vh auto 0;text-align:center}
+.gate .lead{color:var(--smoke);font-size:14.5px}
+
+/* 탭 */
+.tabs{display:flex;gap:4px;margin:22px 0 6px;border-bottom:2px solid var(--ink);overflow-x:auto}
+.tabs button{background:none;border:none;font-weight:700;font-size:15px;color:var(--smoke);padding:12px 16px;border-bottom:4px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ember)}
+.sec{display:none;padding-top:16px}.sec.on{display:block}
+h2{font-family:var(--serif);font-weight:900;font-size:22px;margin:8px 0 6px}
+h3{font-family:var(--serif);font-weight:700;font-size:17px;margin:22px 0 8px;padding-left:10px;border-left:4px solid var(--ember)}
+.lead{color:var(--smoke);font-size:14.5px}
+.card{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:18px 20px;margin-top:14px}
+.card.strong{border-color:var(--ink)}
+
+/* 도덕 기록 */
+.wsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
+.wsc{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:14px 16px;cursor:pointer;transition:.15s}
+.wsc:hover{border-color:var(--ash)}
+.wsc.sel{border-color:var(--ember);box-shadow:0 0 0 2px var(--ember)}
+.wsc .cat{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--smoke);padding:2px 9px;border-radius:10px;margin-bottom:6px}
+.wsc.c0 .cat{background:var(--pain)}.wsc.c1 .cat{background:var(--bystand)}.wsc.c2 .cat{background:var(--resist)}.wsc.c3 .cat{background:#3d3d5c}.wsc.c4 .cat{background:#4a3050}
+.wsc .wit{font-family:var(--serif);font-weight:700;font-size:15px;line-height:1.5}
+.wsc .sub{font-size:12.5px;color:var(--smoke);margin-top:6px}
+.wsc .emo{margin-top:7px;display:flex;gap:4px;flex-wrap:wrap}
+.wsc .emo span{font-size:11px;background:#e9e6dd;padding:2px 8px;border-radius:9px}
+.empty{color:var(--ash);padding:34px 0;text-align:center;grid-column:1/-1}
+
+/* 감상: 게르니카 상징 */
+.symref{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.sref{background:var(--page);border:1.5px solid var(--line);border-left-width:5px;border-radius:3px;padding:13px 15px}
+.sref b{font-family:var(--serif);font-size:16px;display:block}
+.sref span{font-size:13px;color:var(--smoke);display:block;margin-top:4px}
+.sref.p{border-left-color:var(--pain)}.sref.b{border-left-color:var(--bystand)}
+.sref.r{border-left-color:var(--resist)}.sref.h{border-left-color:var(--hope)}
+.qbox{background:var(--ink);color:var(--paper);border-radius:3px;padding:18px 22px;margin-top:14px}
+.qbox p{font-family:var(--serif);font-weight:700;font-size:17px;margin:7px 0}
+.qbox p::before{content:"⚓ ";color:#ff6b5e}
+
+/* 감상 탭 */
+.substeps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.substeps button{background:var(--page);border:1.5px solid var(--line);color:var(--smoke);font-size:13px;font-weight:700;padding:7px 15px;border-radius:20px}
+.substeps button.on{background:var(--ember);border-color:var(--ember);color:#fff}
+.sub{display:none}.sub.on{display:block}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px;margin-top:14px}
+.fact{background:var(--page);border:1.5px solid var(--line);border-top:4px solid var(--ink);border-radius:2px;padding:14px 16px}
+.fact b{font-family:var(--serif);font-size:17px;display:block;margin-bottom:5px}
+.fact span{font-size:13.5px;color:var(--smoke)}
+.note{background:var(--page);border-left:5px solid var(--smoke);padding:12px 16px;font-size:13.5px;color:var(--smoke);margin-top:16px}
+.note.strong{border-left-color:var(--ember);color:var(--ink);font-size:15px}
+.note b{color:var(--ember)}
+.compo{margin-top:14px}
+.anal{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px;margin-top:14px}
+.anal .a{background:var(--page);border:1.5px solid var(--line);border-radius:2px;padding:13px 15px}
+.anal .a b{font-family:var(--serif);font-size:15.5px;display:block;margin-bottom:4px}
+.anal .a span{font-size:13.5px;color:var(--smoke)}
+.anal .a b+span b{color:var(--ember)}
+.sref{cursor:pointer}
+.sref .rev{display:none}
+.sref.open .rev{display:block}
+.sref .ask{font-size:12.5px;color:var(--ember);margin-top:6px;display:block}
+.sref.open .ask{display:none}
+.cmp{display:grid;grid-template-columns:1fr 50px 1fr;align-items:center;gap:8px;margin-top:14px}
+@media(max-width:700px){.cmp{grid-template-columns:1fr;gap:14px}}
+.cbox{border:1.5px solid var(--line);border-radius:3px;padding:16px 18px;background:var(--page)}
+.cbox b{font-family:var(--serif);font-size:16px;display:block;margin-bottom:8px}
+.cbox ul{padding-left:18px}.cbox li{font-size:14px;margin:5px 0}
+.cbox.old{color:var(--smoke)}
+.cbox.now{border-color:var(--ember);background:#fdf6f5}
+.cbox.now b{color:var(--ember)}
+.carrow{text-align:center;font-size:26px;color:var(--ember)}
+.bars{margin-top:12px}
+.bar{display:grid;grid-template-columns:120px 1fr 46px;align-items:center;gap:10px;margin:7px 0;font-size:13.5px}
+.bar .fill{height:20px;background:var(--ember);border-radius:2px;min-width:3px}
+.bar .n{text-align:right;color:var(--smoke);font-weight:700}
+.bigstat{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px}
+.bigstat div{background:var(--ink);color:var(--paper);border-radius:3px;padding:14px 20px;text-align:center}
+.bigstat b{font-family:var(--serif);font-size:30px;display:block;line-height:1.2}
+.bigstat span{font-size:12px;color:var(--ash)}
+.emowrap{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+.emow{font-family:var(--serif);font-weight:700;color:var(--smoke)}
+.emow b{color:var(--ember);font-family:var(--sans);font-size:12px;margin-left:4px}
+
+/* 1쪽 감상 활동지 */
+.afill{display:grid;gap:5px;margin-top:6px;font-size:12px}
+.afill span{line-height:2.1}
+.bl{display:inline-block;border-bottom:1.2px solid var(--ink);min-width:64px;margin:0 3px}
+.bl.s{min-width:30px}
+.astruct{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.sbox{position:relative;border:1.3px solid var(--ink);aspect-ratio:16/9;background:
+  repeating-linear-gradient(0deg,transparent,transparent 8mm,#f2f0ea 8mm,#f2f0ea calc(8mm + 1px)),
+  repeating-linear-gradient(90deg,transparent,transparent 8mm,#f2f0ea 8mm,#f2f0ea calc(8mm + 1px))}
+.sg{position:absolute;font-size:9px;color:var(--ash)}
+.sg.t{top:3px;left:50%;transform:translateX(-50%)}
+.sg.b{bottom:3px;left:50%;transform:translateX(-50%)}
+.schk{display:flex;flex-direction:column;gap:3px}
+.schk .aopt{font-size:11px}
+.asym{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}
+.asym th{background:var(--ink);color:#fff;padding:4px 7px;text-align:left;font-weight:700;font-size:10.5px}
+.asym td{border:1px solid #b5b2aa;padding:0 7px;height:8.4mm;vertical-align:middle}
+.asym td:first-child{font-weight:700;font-size:10.5px;background:#f4f3ee}
+.a4.pg2{margin-top:26px}
+
+@media print{
+  .a4.pg1{page-break-after:always;break-after:page}
+  .a4.pg2{margin-top:0}
+}
+
+/* ===== 6. A4 활동지 ===== */
+.a4{background:#fff;border:1px solid var(--line);box-shadow:0 3px 14px rgba(0,0,0,.08);padding:11mm 12mm 9mm;max-width:820px;margin:16px auto 0;font-size:12.5px;line-height:1.5}
+.ahead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid var(--ink);padding-bottom:6px;flex-wrap:wrap;gap:8px}
+.aover{font-size:9.5px;letter-spacing:.2em;color:var(--ember);font-weight:700}
+.atitle{font-family:var(--serif);font-weight:900;font-size:23px;margin-top:2px}
+.aid{font-size:12px;font-weight:700;display:flex;gap:10px}
+.aid span{border-bottom:1.2px solid var(--ink);min-width:62px;display:inline-block;padding:0 3px 2px}
+.asec{display:grid;grid-template-columns:26px 1fr;gap:9px;border:1.3px solid var(--ink);border-radius:2px;padding:8px 11px;margin-top:7px}
+.asec.last{margin-bottom:2px}
+.anum{font-family:var(--serif);font-weight:900;font-size:17px;color:var(--ember);line-height:1.2}
+.alab{font-family:var(--serif);font-weight:700;font-size:13.5px}
+.alab small{font-family:var(--sans);font-weight:400;font-size:10px;color:var(--smoke);margin-left:5px}
+.alab2{font-size:11px;font-weight:700;margin-top:5px}
+.alab2 small{font-weight:400;color:var(--smoke);font-size:9.8px;margin-left:4px}
+.aline{border-bottom:1px solid #b5b2aa;height:7mm}
+.atwo{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.aopts{display:flex;flex-wrap:wrap;gap:4px 14px;margin:5px 0 2px}
+.aopt{font-size:11.5px;display:flex;align-items:center;gap:5px}
+.aopt em{font-style:normal;font-size:9.8px;color:var(--smoke)}
+.abx{width:11px;height:11px;border:1.3px solid var(--ink);display:inline-block;border-radius:2px;flex:0 0 auto}
+.asketch{position:relative;border:1.3px dashed var(--smoke);width:62mm;height:62mm;margin-top:6px;background:
+  repeating-linear-gradient(0deg,transparent,transparent 9mm,#f0eee8 9mm,#f0eee8 calc(9mm + 1px)),
+  repeating-linear-gradient(90deg,transparent,transparent 9mm,#f0eee8 9mm,#f0eee8 calc(9mm + 1px))}
+.edge{position:absolute;font-size:9px;color:var(--ash);letter-spacing:.05em}
+.edge.t{top:3px;left:50%;transform:translateX(-50%)}
+.edge.b{bottom:3px;left:50%;transform:translateX(-50%)}
+.edge.l{left:4px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left center}
+.edge.r{right:4px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;max-width:44mm}
+.agrid div{border:1.3px solid var(--ink);aspect-ratio:1/1;font-size:9.5px;color:var(--ash);padding:3px 5px}
+.afoot{margin-top:7px;border-top:1px solid var(--line);padding-top:4px;font-size:9px;color:var(--smoke);display:flex;justify-content:space-between}
+
+@media print{
+  body{background:#fff}
+  .masthead,.tabs,.noprint,.gate{display:none!important}
+  .wrap{padding:0;max-width:100%}
+  .sec{display:none!important}
+  #tSheet{display:block!important;padding:0}
+  .a4{border:none;box-shadow:none;margin:0;max-width:100%;padding:8mm 10mm}
+  .asec{break-inside:avoid}
+  @page{size:A4;margin:0}
+}
+
+/* 상징 만들기 */
+.roleschips{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.rchip{border:1.5px solid var(--line);background:var(--page);padding:9px 18px;font-size:14.5px;border-radius:22px;font-weight:500}
+.rchip.pick{color:#fff;border-color:transparent}
+.rchip.pick.r고통{background:var(--pain)}.rchip.pick.r방관{background:var(--bystand)}
+.rchip.pick.r저항{background:var(--resist)}.rchip.pick.r희망{background:var(--hope)}
+.hint{font-size:13px;color:var(--ash);margin-top:5px}
+.picked{font-size:13.5px;background:var(--paper);border-left:4px solid var(--ember);padding:9px 13px;margin-top:10px;color:var(--smoke)}
+
+/* 사전 */
+.dict{margin-top:12px;column-count:2;column-gap:28px}
+@media(max-width:760px){.dict{column-count:1}}
+.entry{break-inside:avoid;background:var(--page);border-top:3px solid var(--ink);padding:16px 4px 18px;margin-bottom:20px;position:relative}
+.entry .word{font-family:var(--serif);font-weight:900;font-size:24px;line-height:1.3}
+.entry .pos{display:inline-block;font-size:12px;font-weight:700;color:#fff;padding:2px 11px;border-radius:2px;margin:6px 0 8px}
+.entry .pos.r고통{background:var(--pain)}.entry .pos.r방관{background:var(--bystand)}
+.entry .pos.r저항{background:var(--resist)}.entry .pos.r희망{background:var(--hope)}
+.entry .mean{font-size:15px}
+.entry .src{margin-top:10px;font-size:13px;color:var(--smoke);border-left:3px solid var(--line);padding-left:10px}
+.entry .by{margin-top:7px;font-size:12px;color:var(--ash);letter-spacing:.06em}
+.entry .x{position:absolute;top:8px;right:2px;border:none;background:none;color:var(--ash);font-size:14px}
+.dictbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.filters button{background:none;border:1.5px solid var(--line);color:var(--smoke);font-size:13px;font-weight:700;padding:6px 14px;border-radius:16px}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.count{font-size:13.5px;color:var(--smoke);margin-left:auto}
+
+/* 제작 계획 */
+.panels4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;max-width:440px}
+.panel{aspect-ratio:1/1;border:1.5px solid var(--ink);border-radius:2px;background:var(--page);padding:12px;font-size:12.5px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:.15s;justify-content:center;align-items:center;text-align:center;box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 5px var(--line)}
+.panel:hover{background:#f0eee7}
+.panel b{font-size:11px;color:var(--ember);letter-spacing:.08em}
+.panel .nm{font-family:var(--serif);font-weight:700;font-size:16px;line-height:1.35}
+.panel .rl{font-size:11.5px;color:#fff;padding:1px 9px;border-radius:9px;background:var(--smoke)}
+.panel .rl.r고통{background:var(--pain)}.panel .rl.r방관{background:var(--bystand)}
+.panel .rl.r저항{background:var(--resist)}.panel .rl.r희망{background:var(--hope)}
+.panel .au{font-size:11px;color:var(--ash)}
+.artcard{background:var(--paper);border:1px solid var(--line);border-radius:2px;padding:14px 16px;font-size:14px;white-space:pre-wrap;font-family:var(--serif);line-height:1.7}
+.scale{margin-top:14px}
+.steps{counter-reset:s}
+.step{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:14px 16px 14px 52px;margin-top:10px;position:relative}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:26px;height:26px;line-height:26px;text-align:center;background:var(--ink);color:var(--paper);border-radius:50%;font-weight:700;font-size:13px}
+.step b{font-family:var(--serif);font-size:15.5px}
+.step p{font-size:13.5px;color:var(--smoke);margin-top:3px}
+</style>
+</head>
+<body>
+
+<script>
+/* ★ 이 2줄만 실제 값으로 (index.html과 동일) ★ */
+const SB_URL  = 'https://YOUR-PROJECT.supabase.co';
+const SB_ANON = 'YOUR-ANON-KEY';
+
+const CATS=['학교폭력·따돌림','혐오표현·조리돌림','차별·비하','관계 단절','온라인'];
+const TEAMS=['1모둠','2모둠','3모둠','4모둠','5모둠','6모둠','7모둠','8모둠'];
+const ROLES=['고통','방관','저항','희망'];
+const ROLE_HINT={
+ '고통':'가장 아프거나 억울한 존재를 대신하는 사물 — 게르니카의 말(馬)처럼',
+ '방관':'지켜보기만 하는 존재 — 게르니카의 전구처럼 장면을 내려다보는 것',
+ '저항':'맞서거나 버티는 존재 — 부러졌지만 놓지 않은 칼처럼',
+ '희망':'어둠 속에서 지켜지는 것 — 꺼지지 않은 램프, 작은 꽃처럼'
+};
+const GUERNICA=[
+ ['황소','무표정하게 서 있는 폭력 그 자체. 피카소는 끝내 뜻을 밝히지 않았다.','b'],
+ ['비명 지르는 말','짓밟힌 이들의 고통. 화면 한가운데에서 가장 크게 운다.','p'],
+ ['전구(눈)','폭격을 내려다보는 차가운 시선. 보고 있으면서 막지 않는 눈.','b'],
+ ['부러진 칼과 꽃','부서진 저항, 그리고 그 틈에서 피어난 작은 희망.','r'],
+ ['램프를 든 팔','어둠 속으로 빛을 들이미는 손 — 증언하려는 의지.','h'],
+ ['죽은 아이를 안은 여인','말이 필요 없는 상실. 고개를 젖힌 채 하늘을 향해 운다.','p']
+];
+</script>
+
+<div class="wrap">
+
+<div class="masthead">
+  <div class="over">미술 · 감상과 표현</div>
+  <h1>게르니카 작업실</h1>
+  <div class="under">도덕 시간의 기록이 그림의 언어가 되는 곳</div>
+  <div class="edition" id="edition"></div>
+</div>
+
+<!-- 게이트 -->
+<div class="gate" id="gate">
+  <p class="lead">우리 반과 모둠을 고르면<br>도덕 시간에 우리가 쓴 기록이 열립니다.</p>
+  <div class="row"><input type="text" id="gClass" placeholder="반 (예: 201)" style="text-align:center"></div>
+  <div class="row"><select id="gTeam"></select></div>
+  <div class="row"><button class="btn" style="width:100%" onclick="enter()">작업실 열기</button></div>
+</div>
+
+<!-- 본문 -->
+<div class="hide" id="app">
+  <div class="tabs">
+    <button class="on" data-t="tRead">1. 우리 기록 읽기</button>
+    <button data-t="tSee">2. 게르니카 감상</button>
+    <button data-t="tTopic">3. 우리 모둠의 전쟁</button>
+    <button data-t="tSym">4. 상징 만들기</button>
+    <button data-t="tMake">5. 제작 계획</button>
+    <button data-t="tSheet">6. 활동지 인쇄</button>
+  </div>
+
+  <!-- 1. 도덕 기록 -->
+  <div class="sec on" id="tRead">
+    <h2>우리가 목격한 것들</h2>
+    <p class="lead">도덕 시간에 우리 모둠이 남긴 기록입니다. 하나씩 다시 읽으며 "우리의 전쟁"이 무엇인지 찾아봅니다.</p>
+    <div class="wsgrid" id="wsGrid"></div>
+  </div>
+
+  <!-- 2. 감상 -->
+  <div class="sec" id="tSee">
+    <div class="substeps" id="subNav"></div>
+
+    <!-- 2-1 만나기 -->
+    <div class="sub on" id="see1">
+      <h2>작품 만나기</h2>
+      <p class="lead">먼저 사실부터. 이 그림은 상상이 아니라 <b>실제로 일어난 일</b>을 그린 것입니다.</p>
+      <div class="facts">
+        <div class="fact"><b>1937. 4. 26.</b><span>스페인 북부 바스크의 작은 마을 게르니카. 장날 오후, 폭격기가 3시간 넘게 마을을 폭격했다.</span></div>
+        <div class="fact"><b>군인이 아닌 사람들</b><span>표적은 군사시설이 아니라 시장과 집이었다. 죽은 이들은 장을 보러 나온 주민들이었다.</span></div>
+        <div class="fact"><b>3주 만에</b><span>파리에 있던 피카소는 신문으로 소식을 접하고, 곧바로 붓을 들어 3주 남짓 만에 완성했다.</span></div>
+        <div class="fact"><b>7.8m × 3.5m</b><span>교실 칠판 세 개를 이어 붙인 크기. 관람객이 그림 앞에 서면 화면에 삼켜진다.</span></div>
+        <div class="fact"><b>색이 없다</b><span>검정·흰색·회색뿐. 당시 신문 사진의 색이기도 하다.</span></div>
+        <div class="fact"><b>돌아오지 못한 그림</b><span>피카소는 스페인에 자유가 돌아올 때까지 이 그림을 보내지 않겠다고 했다. 그림은 1981년에야 스페인으로 갔다.</span></div>
+      </div>
+      <div class="note">📖 작품 도판은 선생님 화면(교과서·검색)으로 함께 봅니다. 이 앱은 <b>무엇을 어떻게 볼지</b>를 안내합니다.</div>
+    </div>
+
+    <!-- 2-2 천천히 보기 -->
+    <div class="sub" id="see2">
+      <h2>천천히 보기</h2>
+      <p class="lead">설명을 듣기 전에, 먼저 눈으로만 봅니다. 아래 순서대로 30초씩.</p>
+      <div class="steps">
+        <div class="step"><b>1분 — 말없이 보기</b><p>아무 설명 없이 그림 전체를 봅니다. 어디에 눈이 가장 먼저 갔나요?</p></div>
+        <div class="step"><b>소리 상상하기</b><p>이 그림에서 소리가 난다면 어떤 소리일까요? 비명, 울음, 아니면 정적?</p></div>
+        <div class="step"><b>한 곳만 오래 보기</b><p>가장 견디기 힘든 부분 한 곳을 골라 30초간 봅니다. 왜 그곳이 힘든가요?</p></div>
+        <div class="step"><b>몸으로 느끼기</b><p>그림 속 인물 중 하나의 자세를 그대로 따라 해봅니다. 그 자세는 어떤 기분인가요?</p></div>
+      </div>
+      <div class="qbox">
+        <p>이 그림은 아름다운가요? 아름답지 않다면, 왜 이렇게 그렸을까요?</p>
+        <p>화가는 이 그림을 보는 사람이 어떤 기분이 되기를 바랐을까요?</p>
+      </div>
+    </div>
+
+    <!-- 2-3 구조 분석 -->
+    <div class="sub" id="see3">
+      <h2>구조 분석 — 화면은 어떻게 짜여 있나</h2>
+      <p class="lead">게르니카는 혼란스러워 보이지만, 아주 치밀하게 계산된 구조 위에 있습니다.</p>
+      <div class="compo" id="compo"></div>
+      <div class="anal">
+        <div class="a"><b>① 중앙의 삼각형</b><span>가운데가 가장 높은 삼각 구도. 고전 종교화에서 성스러운 장면을 담던 형식을 그대로 가져와, 성스러움 대신 <b>고통</b>을 올려놓았다.</span></div>
+        <div class="a"><b>② 좌 → 우로 흐르는 시선</b><span>왼쪽 위 황소에서 시작해 가운데 말을 지나 오른쪽 불타는 사람으로. 시선이 한 바퀴 돌면서 빠져나갈 곳이 없다.</span></div>
+        <div class="a"><b>③ 위에서 내려다보는 빛</b><span>전구와 램프, 두 개의 빛이 위에서 장면을 비춘다. 밝히지만 구하지는 않는 빛.</span></div>
+        <div class="a"><b>④ 색 대신 명암</b><span>색을 지우자 형태와 명암만 남았다. 감정을 색으로 꾸미지 않고, 뼈대로 전달한다.</span></div>
+        <div class="a"><b>⑤ 부서진 시점</b><span>얼굴 하나에 옆모습과 정면이 겹쳐 있다(입체주의). 세상이 정상적으로 보이지 않는 상태 자체를 그린 것.</span></div>
+        <div class="a"><b>⑥ 신문 활자 같은 무늬</b><span>말의 몸에 활자 같은 결이 그어져 있다. 이 사건이 <b>신문으로 전해진 소식</b>이었음을 암시한다.</span></div>
+      </div>
+    </div>
+
+    <!-- 2-4 상징 읽기 -->
+    <div class="sub" id="see4">
+      <h2>상징 읽기</h2>
+      <p class="lead">피카소는 "이건 무슨 뜻이다"라고 설명하지 않았습니다. 먼저 <b>내 생각을 말한 뒤</b> 카드를 열어보세요.</p>
+      <div class="symref" id="symRef"></div>
+      <div class="qbox">
+        <p>왜 사람이 아니라 동물과 사물로 고통을 말했을까?</p>
+        <p>피카소는 황소의 뜻을 끝내 밝히지 않았다. 여러분은 무엇이라고 보나요?</p>
+      </div>
+    </div>
+
+    <!-- 2-5 우리 시대 -->
+    <div class="sub" id="see5">
+      <h2>우리 시대의 게르니카</h2>
+      <p class="lead">1937년 게르니카에는 폭탄이 떨어졌습니다. 그런데 도덕 시간에 우리 반이 적어낸 기록을 보면 —</p>
+      <div class="cmp">
+        <div class="cbox old"><b>1937 · 게르니카</b>
+          <ul><li>폭탄이 떨어진다</li><li>마을이 무너진다</li><li>신문에 실린다</li><li>멀리 있는 일처럼 느껴진다</li></ul></div>
+        <div class="carrow">→</div>
+        <div class="cbox now"><b>지금 · 우리 곁</b>
+          <ul><li>말과 시선이 겨눈다</li><li>한 사람의 세계가 무너진다</li><li>아무 데도 실리지 않는다</li><li>바로 여기, 오늘 있었던 일이다</li></ul></div>
+      </div>
+      <h3>우리 반이 목격한 전쟁 <span class="small" style="font-weight:400">— 도덕 시간 기록 집계</span></h3>
+      <div id="classStat"></div>
+      <div class="qbox">
+        <p>왜 이 일들은 뉴스에 나오지 않을까?</p>
+        <p>기록이 이만큼 모였다는 것은 무엇을 뜻할까?</p>
+        <p>피카소는 폭격을 그려 세상에 알렸다. 우리는 무엇을 그려서 알릴 수 있을까?</p>
+      </div>
+      <div class="note strong">이제 우리 차례입니다. 다음 탭에서 <b>우리 모둠이 그릴 전쟁</b>을 정합니다.</div>
+    </div>
+  </div>
+
+  <!-- 3. 주제 -->
+  <div class="sec" id="tTopic">
+    <h2>우리 모둠의 전쟁</h2>
+    <p class="lead">모둠 기록을 모아 하나의 주제로 좁힙니다. 이것이 우리 작품의 출발점이 됩니다.</p>
+    <div class="card strong">
+      <label class="small">작품 제목</label>
+      <input type="text" id="tTitle" placeholder="예: 손잡이 없는 문">
+      <label class="small" style="display:block;margin-top:14px">우리 모둠이 그리려는 전쟁은</label>
+      <textarea id="tState" rows="4" placeholder="예: 우리는 '보이지 않게 밀려나는 일'을 그리려 한다. 단톡방에서, 급식실에서, 아무도 소리치지 않지만 한 사람의 자리가 조용히 사라진다."></textarea>
+      <div class="row"><button class="btn" onclick="saveTopic()">저장하기</button><span class="small" id="topicSaved" style="align-self:center"></span></div>
+    </div>
+  </div>
+
+  <!-- 4. 상징 -->
+  <div class="sec" id="tSym">
+    <h2>상징 만들기</h2>
+    <p class="lead">목격 장면 하나를 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다.</p>
+    <div class="wsgrid" id="symSrc"></div>
+    <div class="card strong">
+      <div class="picked" id="picked">↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (없이도 만들 수 있어요)</div>
+      <label class="small">이 상징의 자리</label>
+      <div class="roleschips" id="roleChips"></div>
+      <p class="hint" id="roleHint">자리를 고르면 힌트가 나타납니다.</p>
+      <label class="small" style="display:block;margin-top:14px">상징 이름 — 사물·형상으로</label>
+      <input type="text" id="sName" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
+      <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
+      <textarea id="sMean" rows="3" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
+      <label class="small" style="display:block;margin-top:14px">만든 사람</label>
+      <input type="text" id="sAuthor" placeholder="별칭 또는 번호">
+      <div class="row"><button class="btn" onclick="addSymbol()">사전에 등재하기</button></div>
+    </div>
+    <h3>우리 모둠 상징 사전</h3>
+    <div class="dictbar">
+      <div class="filters" id="dFilters">
+        <button class="on" data-f="전체">전체</button><button data-f="고통">고통</button><button data-f="방관">방관</button><button data-f="저항">저항</button><button data-f="희망">희망</button>
+      </div>
+      <span class="count" id="dCount"></span>
+    </div>
+    <div class="dict" id="dict"></div>
+  </div>
+
+  <!-- 5. 제작 -->
+  <div class="sec" id="tMake">
+    <h2>제작 계획 — 20×20 캔버스에서 대형작으로</h2>
+    <p class="lead">각자 <b>20×20cm 정사각 캔버스</b> 한 점을 만들고, 네 점을 모아 모둠 작품으로, 모든 모둠을 모아 <b>학급 대형작</b>으로 완성합니다.</p>
+
+    <div class="scale" id="scaleView"></div>
+
+    <h3>역할 나누기 — 네 자리, 네 사람</h3>
+    <p class="small">게르니카에도 고통·방관·저항·희망의 자리가 있습니다. 각자 한 자리를 맡아 상징을 배정하세요. (칸을 클릭)</p>
+    <div class="panels4" id="panels"></div>
+    <p class="small" style="margin-top:8px">※ 배치는 자유입니다. 다만 <b>고통은 안쪽으로 모이게</b>, <b>방관은 위쪽</b>에 두면 게르니카의 구도와 닮은 힘이 생깁니다.</p>
+
+    <h3>표현 방법 — 그려도 좋고, 붙여도 좋다</h3>
+    <div class="anal">
+      <div class="a"><b>직접 그리기</b><span>아크릴·목탄·먹. 캔버스는 종이보다 힘 있는 선이 나옵니다. 흑백·회색이 기본.</span></div>
+      <div class="a"><b>콜라주로 붙이기</b><span>신문지·검은 종이·골판지를 목공풀이나 젤미디엄으로 붙입니다. 게르니카의 말 몸통에 그어진 활자 결과 이어지는 재료입니다.</span></div>
+      <div class="a"><b>섞어 쓰기</b><span>붙인 위에 다시 그리고, 그린 위에 다시 붙입니다. 층이 겹칠수록 부서진 느낌이 살아납니다.</span></div>
+      <div class="a"><b>단 하나의 색</b><span>모둠이 합의한 한 가지 색만. 네 점 전체에서 색이 들어가는 자리는 <b>한두 곳</b>이면 충분합니다.</span></div>
+    </div>
+
+    <h3>제작 순서</h3>
+    <div class="steps">
+      <div class="step"><b>모둠 구도 회의</b><p>캔버스 4점을 책상에 2×2로 놓고, 네 점을 <b>가로지르는 큰 형태 하나</b>를 연필로 표시합니다. 이 형태가 있어야 모았을 때 하나의 그림이 됩니다.</p></div>
+      <div class="step"><b>개인 밑그림</b><p>자기 캔버스에 맡은 상징을 크게. <b>가장자리까지 형태가 나가야</b> 옆 캔버스와 이어집니다. 여백을 남기지 마세요.</p></div>
+      <div class="step"><b>그리기 · 붙이기</b><p>재료를 섞어 층을 만듭니다. 캔버스 옆면까지 이어 칠하면 모았을 때 경계가 덜 튑니다.</p></div>
+      <div class="step"><b>단 하나의 색 넣기</b><p>마지막에. 모둠이 정한 자리에만.</p></div>
+      <div class="step"><b>모둠 결합 → 학급 결합</b><p>4점을 2×2로 붙여 모둠 작품(40×40)을 만들고, 모든 모둠을 벽면에 격자로 배열해 대형작을 완성합니다. 배열 순서는 학급이 함께 정합니다.</p></div>
+      <div class="step"><b>작품 설명문 · 감상 청문회</b><p>제목 / 우리가 그린 전쟁 / 상징 네 개의 뜻 / 색을 돌려준 자리를 적어 옆에 붙입니다. 다른 모둠 작품 앞에서 "이 작품이 고발하는 것은 무엇인가"를 서로 묻습니다.</p></div>
+    </div>
+
+    <div class="card strong" style="margin-top:18px">
+      <b>우리 모둠 작품 카드</b>
+      <p class="small" style="margin-top:4px">아래 내용을 그대로 옮겨 적어 작품 옆에 붙이세요.</p>
+      <div id="artCard" style="margin-top:10px"></div>
+      <div class="row"><button class="btn ghost" onclick="copyCard()">작품 설명문 복사</button></div>
+    </div>
+  </div>
+
+  <!-- 6. 활동지 -->
+  <div class="sec" id="tSheet">
+    <div class="noprint">
+      <h2>미술 활동지 — 개인 학습지 (2쪽)</h2>
+      <p class="lead">1쪽은 감상, 2쪽은 표현 설계. 각자 한 부씩 인쇄해 사용합니다.</p>
+      <div class="row"><button class="btn" onclick="window.print()">A4 2쪽 인쇄</button></div>
+    </div>
+
+    <!-- ===== 1쪽 · 감상 ===== -->
+    <div class="a4 pg1">
+      <div class="ahead">
+        <div>
+          <div class="aover">미술 · 감상 — 1쪽</div>
+          <div class="atitle">게르니카를 만나다</div>
+        </div>
+        <div class="aid">반 <span></span> 모둠 <span></span> 이름 <span></span></div>
+      </div>
+
+      <div class="asec"><div class="anum">A</div><div class="ain">
+        <div class="alab">작품 만나기 <small>선생님 설명을 들으며 빈칸을 채웁니다</small></div>
+        <div class="afill">
+          <span>1937년 4월 26일, 스페인 <b class="bl"></b> 마을이 폭격당했다.</span>
+          <span>폭격은 <b class="bl s"></b>시간 넘게 이어졌고, 그날은 <b class="bl s"></b>이 서는 날이었다.</span>
+          <span>표적은 군사시설이 아니라 <b class="bl"></b>이었다.</span>
+          <span>피카소는 약 <b class="bl s"></b>주 만에 가로 <b class="bl s"></b>m 크기로 완성했다.</span>
+          <span>이 그림에는 <b class="bl"></b>이 없다. 검정·흰색·회색뿐이다.</span>
+        </div>
+      </div></div>
+
+      <div class="asec"><div class="anum">B</div><div class="ain">
+        <div class="alab">천천히 보기 <small>설명을 듣기 전, 눈으로만 본 것을 적습니다</small></div>
+        <div class="atwo">
+          <div><div class="alab2">가장 먼저 눈이 간 곳</div><div class="aline"></div></div>
+          <div><div class="alab2">소리가 난다면 어떤 소리일까</div><div class="aline"></div></div>
+        </div>
+        <div class="alab2">가장 견디기 힘든 부분과 그 이유</div><div class="aline"></div><div class="aline"></div>
+        <div class="alab2">그림 속 한 인물의 자세를 따라 해보았을 때 든 기분</div><div class="aline"></div>
+      </div></div>
+
+      <div class="asec"><div class="anum">C</div><div class="ain">
+        <div class="alab">구조 분석 <small>화면이 어떻게 짜여 있는지 직접 그려봅니다</small></div>
+        <div class="astruct">
+          <div class="sbox">
+            <span class="sg t">↑ 위</span>
+            <span class="sg b">아래 ↓</span>
+          </div>
+          <div class="schk">
+            <div class="alab2">화면 안에 그려 넣기</div>
+            <span class="aopt"><span class="abx"></span>중앙의 <b>삼각 구도</b>를 선으로</span>
+            <span class="aopt"><span class="abx"></span><b>시선이 흐르는 방향</b>을 화살표로</span>
+            <span class="aopt"><span class="abx"></span>위에서 내려오는 <b>빛</b>의 자리에 ☀</span>
+            <span class="aopt"><span class="abx"></span>가장 <b>고통스러운 자리</b>에 ★</span>
+            <div class="alab2" style="margin-top:6px">알게 된 것 한 줄</div>
+            <div class="aline"></div>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="asec last"><div class="anum">D</div><div class="ain">
+        <div class="alab">상징 읽기 <small>먼저 내 생각을 적고, 설명을 들은 뒤 오른쪽에 적습니다</small></div>
+        <table class="asym">
+          <tr><th style="width:96px">상징</th><th>내 생각에는…</th><th>알고 보니…</th></tr>
+          <tr><td>황소</td><td></td><td></td></tr>
+          <tr><td>비명 지르는 말</td><td></td><td></td></tr>
+          <tr><td>전구(눈)</td><td></td><td></td></tr>
+          <tr><td>부러진 칼과 꽃</td><td></td><td></td></tr>
+          <tr><td>램프를 든 팔</td><td></td><td></td></tr>
+        </table>
+        <div class="alab2">피카소는 왜 사람이 아니라 동물과 사물로 고통을 말했을까?</div><div class="aline"></div>
+      </div></div>
+
+      <div class="afoot"><span>1937년 게르니카에는 폭탄이 떨어졌다. 그렇다면 지금, 우리 곁의 전쟁은 무엇일까?</span><span>1 / 2</span></div>
+    </div>
+
+    <!-- ===== 2쪽 · 표현 설계 ===== -->
+    <div class="a4 pg2">
+      <div class="ahead">
+        <div>
+          <div class="aover">미술 · 표현 — 2쪽 개인 설계지</div>
+          <div class="atitle">우리 시대의 게르니카</div>
+        </div>
+        <div class="aid">반 <span></span> 모둠 <span></span> 이름 <span></span></div>
+      </div>
+
+      <div class="asec"><div class="anum">1</div><div class="ain">
+        <div class="alab">우리 모둠의 전쟁 <small>모둠이 정한 내용을 옮겨 적습니다</small></div>
+        <div class="alab2">작품 제목</div><div class="aline"></div>
+        <div class="alab2">우리가 그리려는 전쟁</div><div class="aline"></div><div class="aline"></div>
+      </div></div>
+
+      <div class="asec"><div class="anum">2</div><div class="ain">
+        <div class="alab">내가 맡은 자리 <small>네 사람이 하나씩 나누어 맡습니다</small></div>
+        <div class="aopts">
+          <span class="aopt"><span class="abx"></span>고통 <em>가장 아픈 존재</em></span>
+          <span class="aopt"><span class="abx"></span>방관 <em>지켜보는 존재</em></span>
+          <span class="aopt"><span class="abx"></span>저항 <em>맞서는 존재</em></span>
+          <span class="aopt"><span class="abx"></span>희망 <em>지켜지는 것</em></span>
+        </div>
+        <div class="alab2">내가 고른 목격 장면 <small>도덕 시간 기록에서</small></div><div class="aline"></div>
+      </div></div>
+
+      <div class="asec"><div class="anum">3</div><div class="ain">
+        <div class="alab">나의 상징 <small>사람이 아닌 사물·형상으로</small></div>
+        <div class="atwo">
+          <div><div class="alab2">상징 이름</div><div class="aline"></div></div>
+          <div><div class="alab2">이 상징이 대신하는 것</div><div class="aline"></div></div>
+        </div>
+        <div class="alab2">뜻풀이 <small>왜 이것으로 그렸는지</small></div><div class="aline"></div><div class="aline"></div>
+      </div></div>
+
+      <div class="asec"><div class="anum">4</div><div class="ain">
+        <div class="alab">20×20 캔버스 구상 스케치 <small>가장자리까지 형태가 나가게 — 여백을 남기지 않습니다</small></div>
+        <div class="asketch">
+          <span class="edge t">↑ 위 칸과 이어짐</span>
+          <span class="edge b">↓ 아래 칸과 이어짐</span>
+          <span class="edge l">← 옆 칸</span>
+          <span class="edge r">옆 칸 →</span>
+        </div>
+      </div></div>
+
+      <div class="asec"><div class="anum">5</div><div class="ain">
+        <div class="alab">재료와 색</div>
+        <div class="aopts">
+          <span class="aopt"><span class="abx"></span>신문지</span>
+          <span class="aopt"><span class="abx"></span>검은 종이·골판지</span>
+          <span class="aopt"><span class="abx"></span>화면 캡처 인쇄 <em>실명 지우기</em></span>
+          <span class="aopt"><span class="abx"></span>목탄·연필·아크릴</span>
+          <span class="aopt"><span class="abx"></span>기타</span>
+        </div>
+        <div class="atwo">
+          <div><div class="alab2">모둠이 정한 단 하나의 색</div><div class="aline"></div></div>
+          <div><div class="alab2">그 색을 어디에 쓸까 <small>색을 돌려주고 싶은 자리</small></div><div class="aline"></div></div>
+        </div>
+      </div></div>
+
+      <div class="asec last"><div class="anum">6</div><div class="ain">
+        <div class="alab">모둠 결합 배치도 <small>내 자리에 ★ 표시 — 네 점을 모으면 40×40cm, 학급 전체를 모으면 대형작이 됩니다</small></div>
+        <div class="agrid"><div>왼쪽 위</div><div>오른쪽 위</div><div>왼쪽 아래</div><div>오른쪽 아래</div></div>
+      </div></div>
+
+      <div class="afoot"><span>완성 후 작품 설명문에 상징의 뜻을 적어 함께 전시합니다.</span><span>2 / 2</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const sb=supabase.createClient(SB_URL,SB_ANON);
+const $=id=>document.getElementById(id);
+const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900);}
+let CLASS='',TEAM='',ws=[],classWs=[],syms=[],topic=null,pickedRole=null,pickedWs=null,dFilter='전체',panels={};
+
+const params=new URLSearchParams(location.search);
+$('gTeam').innerHTML='<option value="">모둠 선택</option>'+TEAMS.map(t=>`<option>${t}</option>`).join('');
+if(params.get('class'))$('gClass').value=params.get('class');
+
+async function enter(){
+  const c=$('gClass').value.trim(),t=$('gTeam').value;
+  if(!c){toast('반을 입력하세요');return;}
+  if(!t){toast('모둠을 골라주세요');return;}
+  CLASS=c;TEAM=t;
+  $('gate').classList.add('hide');$('app').classList.remove('hide');
+  $('edition').textContent=`— ${CLASS}반 ${TEAM} —`;
+  init();
+}
+function init(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+    b.classList.add('on');$(b.dataset.t).classList.add('on');window.scrollTo({top:0,behavior:'smooth'});
+  });
+  $('symRef').innerHTML=GUERNICA.map((g,i)=>`<div class="sref ${g[2]}" onclick="this.classList.add('open')"><b>${g[0]}</b><span class="ask">먼저 생각해 보고 클릭 →</span><span class="rev">${g[1]}</span></div>`).join('');
+  /* 감상 서브탭 */
+  const SUBS=['① 작품 만나기','② 천천히 보기','③ 구조 분석','④ 상징 읽기','⑤ 우리 시대의 게르니카'];
+  $('subNav').innerHTML=SUBS.map((s,i)=>`<button class="${i===0?'on':''}" onclick="subGo(${i+1},this)">${s}</button>`).join('');
+  drawCompo();
+  ROLES.forEach(r=>{
+    const b=document.createElement('button');b.className='rchip';b.textContent=r+'의 상징';
+    b.onclick=()=>{document.querySelectorAll('.rchip').forEach(x=>x.className='rchip');b.classList.add('pick','r'+r);pickedRole=r;$('roleHint').textContent=ROLE_HINT[r];};
+    $('roleChips').appendChild(b);
+  });
+  document.querySelectorAll('#dFilters button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#dFilters button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');dFilter=b.dataset.f;renderDict();
+  });
+  load();
+  sb.channel('art-'+CLASS+TEAM)
+    .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
+    .on('postgres_changes',{event:'*',schema:'public',table:'art_topics'},load)
+    .subscribe();
+}
+async function load(){
+  const[w,s,t,all]=await Promise.all([
+    sb.from('worksheets').select('*').eq('class_code',CLASS).eq('team',TEAM).order('created_at'),
+    sb.from('art_symbols').select('*').eq('class_code',CLASS).eq('team',TEAM).order('created_at',{ascending:false}),
+    sb.from('art_topics').select('*').eq('class_code',CLASS).eq('team',TEAM).maybeSingle(),
+    sb.from('worksheets').select('*').eq('class_code',CLASS)
+  ]);
+  ws=w.data||[];syms=s.data||[];topic=t.data||null;classWs=all.data||[];
+  renderWs();renderDict();renderPanels();renderClassStat();drawScale();
+  if(topic){$('tTitle').value=topic.title||'';$('tState').value=topic.statement||'';}
+}
+function subGo(n,btn){
+  document.querySelectorAll('.substeps button').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.sub').forEach(s=>s.classList.remove('on'));
+  $('see'+n).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function drawCompo(){
+  $('compo').innerHTML=`
+<svg viewBox="0 0 760 340" style="width:100%;background:#1c1b18;border-radius:3px">
+  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff6b5e"/></marker></defs>
+  <rect x="20" y="24" width="720" height="292" fill="none" stroke="#5b584f" stroke-width="1.5"/>
+  <!-- 삼각 구도 -->
+  <path d="M60 300 L380 60 L700 300 Z" fill="#ffffff" opacity=".07"/>
+  <path d="M60 300 L380 60 L700 300 Z" fill="none" stroke="#f6f4ee" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="380" y="46" fill="#f6f4ee" font-size="14" text-anchor="middle" font-family="Noto Serif KR">① 중앙이 가장 높은 삼각 구도</text>
+  <!-- 영역 -->
+  <rect x="60" y="120" width="150" height="180" fill="#7a2020" opacity=".55"/>
+  <text x="135" y="215" fill="#fff" font-size="13" text-anchor="middle">왼쪽</text>
+  <text x="135" y="235" fill="#e8e5dd" font-size="11" text-anchor="middle">황소 · 여인</text>
+  <rect x="240" y="90" width="280" height="210" fill="#54442a" opacity=".55"/>
+  <text x="380" y="200" fill="#fff" font-size="13" text-anchor="middle">가운데</text>
+  <text x="380" y="220" fill="#e8e5dd" font-size="11" text-anchor="middle">비명 지르는 말 · 전구</text>
+  <rect x="550" y="120" width="150" height="180" fill="#2e4a4a" opacity=".55"/>
+  <text x="625" y="215" fill="#fff" font-size="13" text-anchor="middle">오른쪽</text>
+  <text x="625" y="235" fill="#e8e5dd" font-size="11" text-anchor="middle">불길 · 손을 든 사람</text>
+  <!-- 시선 흐름 -->
+  <path d="M120 140 Q 380 30 640 140" fill="none" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#ar)"/>
+  <text x="380" y="118" fill="#ff6b5e" font-size="12.5" text-anchor="middle">② 시선의 흐름 — 빠져나갈 곳이 없다</text>
+  <!-- 빛 -->
+  <circle cx="380" cy="96" r="13" fill="none" stroke="#f5c518" stroke-width="2"/>
+  <line x1="380" y1="109" x2="380" y2="150" stroke="#f5c518" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="404" y="100" fill="#f5c518" font-size="11.5">③ 위에서 내려다보는 빛</text>
+  <!-- 하단 -->
+  <line x1="60" y1="300" x2="700" y2="300" stroke="#f6f4ee" stroke-width="2"/>
+  <text x="380" y="322" fill="#98948a" font-size="11.5" text-anchor="middle">바닥에 눕혀진 것들 — 부러진 칼과 꽃</text>
+</svg>
+<p class="small" style="margin-top:8px">※ 작품 도판이 아니라 <b>구조를 나타낸 도해</b>입니다. 실제 그림과 나란히 놓고 보세요.</p>`;
+}
+function renderClassStat(){
+  const n=classWs.length;
+  if(!n){$('classStat').innerHTML='<div class="empty">아직 집계할 기록이 없습니다.</div>';return;}
+  const cat={},emo={};
+  classWs.forEach(r=>{
+    cat[r.category||0]=(cat[r.category||0]||0)+1;
+    (r.emotions||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(e=>emo[e]=(emo[e]||0)+1);
+  });
+  const max=Math.max(...Object.values(cat));
+  const bars=CATS.map((c,i)=>{
+    const v=cat[i]||0;
+    return `<div class="bar"><span>${c}</span><span><span class="fill" style="width:${max?Math.round(v/max*100):0}%;display:block"></span></span><span class="n">${v}</span></div>`;
+  }).join('');
+  const es=Object.entries(emo).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const teams=new Set(classWs.map(r=>r.team)).size;
+  $('classStat').innerHTML=`
+    <div class="bigstat">
+      <div><b>${n}</b><span>개의 목격 기록</span></div>
+      <div><b>${teams}</b><span>모둠이 함께</span></div>
+      <div><b>${Object.keys(emo).length}</b><span>가지 감정</span></div>
+    </div>
+    <div class="bars">${bars}</div>
+    ${es.length?`<div class="emowrap">${es.map(([e,v])=>`<span class="emow" style="font-size:${Math.min(16+v*3,40)}px">${esc(e)}<b>${v}</b></span>`).join('')}</div>`:''}
+    <p class="small" style="margin-top:10px">가장 많이 목격된 유형과 가장 자주 적힌 감정이 커집니다. 이것이 <b>우리 반의 게르니카</b>입니다.</p>`;
+}
+function wsCard(r,pick){
+  const emo=(r.emotions||'').split(',').map(x=>x.trim()).filter(Boolean).map(e=>`<span>${esc(e)}</span>`).join('');
+  return `<div class="wsc c${r.category||0} ${pick&&pickedWs&&pickedWs.id===r.id?'sel':''}" ${pick?`onclick="pickWs('${r.id}')"`:''}>
+    <span class="cat">${CATS[r.category||0]}</span>
+    <div class="wit">${esc(r.witness||'')}</div>
+    ${r.a2_hurt?`<div class="sub">아픈 존재 · ${esc(r.a2_hurt)}</div>`:''}
+    ${r.stance?`<div class="sub">나의 자리 · ${esc(r.stance)}</div>`:''}
+    ${emo?`<div class="emo">${emo}</div>`:''}
+  </div>`;
+}
+function renderWs(){
+  const html=ws.length?ws.map(r=>wsCard(r,false)).join(''):'<div class="empty">도덕 시간 기록이 없습니다 — 반과 모둠을 다시 확인해 주세요.</div>';
+  $('wsGrid').innerHTML=html;
+  $('symSrc').innerHTML=ws.length?ws.map(r=>wsCard(r,true)).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
+}
+function pickWs(id){pickedWs=ws.find(r=>r.id===id)||null;renderWs();
+  if(pickedWs)$('picked').innerHTML=`선택한 장면 — <b>${esc(pickedWs.witness)}</b>`;}
+async function saveTopic(){
+  const title=$('tTitle').value.trim();
+  if(!title){toast('작품 제목을 입력하세요');return;}
+  const{error}=await sb.from('art_topics').upsert(
+    {class_code:CLASS,team:TEAM,title,statement:$('tState').value.trim(),updated_at:new Date().toISOString()},
+    {onConflict:'class_code,team'});
+  if(error){toast('저장 실패');return;}
+  $('topicSaved').textContent='저장되었습니다';toast('우리 모둠의 주제가 저장되었습니다');
+}
+async function addSymbol(){
+  const name=$('sName').value.trim(),mean=$('sMean').value.trim();
+  if(!pickedRole){toast('상징의 자리를 골라주세요');return;}
+  if(!name){toast('상징 이름을 입력하세요');return;}
+  if(!mean){toast('뜻풀이를 입력하세요');return;}
+  const{error}=await sb.from('art_symbols').insert({
+    class_code:CLASS,team:TEAM,name,role:pickedRole,meaning:mean,
+    source:pickedWs?pickedWs.witness:null,author:$('sAuthor').value.trim()||'익명'});
+  if(error){toast('등재 실패');return;}
+  $('sName').value='';$('sMean').value='';toast('사전에 등재되었습니다');
+}
+function renderDict(){
+  const show=syms.filter(s=>dFilter==='전체'||s.role===dFilter);
+  $('dict').innerHTML=show.length?show.map(s=>
+    `<div class="entry"><button class="x" onclick="delSym('${s.id}')">✕</button>
+      <div class="word">${esc(s.name)}</div>
+      <span class="pos r${s.role}">${s.role}의 상징</span>
+      <div class="mean">${esc(s.meaning)}</div>
+      ${s.source?`<div class="src">출처 · ${esc(s.source)}</div>`:''}
+      <div class="by">${esc(s.author||'익명')} 지음</div></div>`).join('')
+    :'<div class="empty">아직 등재된 상징이 없습니다 — 첫 표제어의 주인이 되어보세요.</div>';
+  $('dCount').textContent=syms.length?`등재 ${syms.length}개`:'';
+}
+async function delSym(id){if(!confirm('이 상징을 지울까요?'))return;await sb.from('art_symbols').delete().eq('id',id);load();}
+function renderPanels(){
+  const LAB=['왼쪽 위','오른쪽 위','왼쪽 아래','오른쪽 아래'];
+  let h='';
+  for(let i=1;i<=4;i++){
+    const s=syms.find(x=>x.panel_no===i);
+    h+=`<div class="panel" onclick="assign(${i})"><b>${LAB[i-1]} · 20×20</b>`+
+      (s?`<span class="nm">${esc(s.name)}</span><span class="rl r${s.role}">${s.role}</span><span class="au">${esc(s.author||'익명')}</span>`
+        :'<span style="color:var(--ash);font-size:12.5px">비어 있음<br>클릭해 배정</span>')+`</div>`;
+  }
+  $('panels').innerHTML=h;
+  renderArtCard();
+}
+function drawScale(){
+  const teams=new Set(classWs.map(r=>r.team));
+  const n=Math.max(teams.size,1);
+  const cols=Math.min(n,4),rows=Math.ceil(n/cols);
+  const W=(cols*40),H=(rows*40);
+  let big='';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(r*cols+c>=n)continue;
+    const x=470+c*26,y=52+r*26;
+    big+=`<g><rect x="${x}" y="${y}" width="24" height="24" fill="#fffdf8" stroke="#1c1b18" stroke-width="1"/>
+      <line x1="${x+12}" y1="${y}" x2="${x+12}" y2="${y+24}" stroke="#d8d4c8"/>
+      <line x1="${x}" y1="${y+12}" x2="${x+24}" y2="${y+12}" stroke="#d8d4c8"/></g>`;
+  }
+  $('scaleView').innerHTML=`
+<svg viewBox="0 0 760 200" style="width:100%;background:#f0eee8;border:1px solid #d8d4c8;border-radius:3px">
+  <!-- 개인 -->
+  <rect x="40" y="70" width="60" height="60" fill="#fffdf8" stroke="#1c1b18" stroke-width="1.6"/>
+  <text x="70" y="150" font-size="12" text-anchor="middle" fill="#1c1b18" font-family="Noto Sans KR" font-weight="700">개인</text>
+  <text x="70" y="166" font-size="11" text-anchor="middle" fill="#5b584f">20 × 20 cm</text>
+  <text x="70" y="60" font-size="11" text-anchor="middle" fill="#b3271c" font-weight="700">1인 1점</text>
+  <text x="140" y="105" font-size="20" text-anchor="middle" fill="#b3271c">→</text>
+  <!-- 모둠 -->
+  <g>
+    <rect x="185" y="45" width="110" height="110" fill="#fffdf8" stroke="#1c1b18" stroke-width="1.6"/>
+    <line x1="240" y1="45" x2="240" y2="155" stroke="#1c1b18" stroke-width="1.2"/>
+    <line x1="185" y1="100" x2="295" y2="100" stroke="#1c1b18" stroke-width="1.2"/>
+    <text x="212" y="78" font-size="9.5" text-anchor="middle" fill="#7a2020">고통</text>
+    <text x="268" y="78" font-size="9.5" text-anchor="middle" fill="#54442a">방관</text>
+    <text x="212" y="133" font-size="9.5" text-anchor="middle" fill="#2e4a4a">저항</text>
+    <text x="268" y="133" font-size="9.5" text-anchor="middle" fill="#3d5c3d">희망</text>
+  </g>
+  <text x="240" y="176" font-size="12" text-anchor="middle" fill="#1c1b18" font-family="Noto Sans KR" font-weight="700">모둠 4점 · 40 × 40 cm</text>
+  <text x="240" y="34" font-size="11" text-anchor="middle" fill="#b3271c" font-weight="700">2 × 2 결합</text>
+  <text x="340" y="105" font-size="20" text-anchor="middle" fill="#b3271c">→</text>
+  <!-- 학급 -->
+  ${big}
+  <text x="${470+(cols*26)/2}" y="${52+rows*26+20}" font-size="12" text-anchor="middle" fill="#1c1b18" font-family="Noto Sans KR" font-weight="700">학급 대형작 · 약 ${W} × ${H} cm</text>
+  <text x="${470+(cols*26)/2}" y="40" font-size="11" text-anchor="middle" fill="#b3271c" font-weight="700">${n}개 모둠 · 캔버스 ${n*4}점</text>
+</svg>
+<p class="small" style="margin-top:8px">※ 모둠 수는 도덕 시간 기록을 기준으로 자동 계산됩니다. 벽면 배열 순서는 학급이 함께 정합니다.</p>`;
+}
+function renderArtCard(){
+  const assigned=[1,2,3,4].map(i=>syms.find(x=>x.panel_no===i)).filter(Boolean);
+  const t=topic||{};
+  let txt=`《${t.title||'(제목을 정해주세요)'}》\n${CLASS}반 ${TEAM}\n\n`;
+  txt+=`우리가 그린 전쟁\n${t.statement||'(3번 탭에서 작성하세요)'}\n\n`;
+  if(assigned.length){
+    txt+=`우리의 상징\n`;
+    assigned.forEach(s=>{txt+=`· ${s.name} (${s.role}의 상징) — ${s.meaning}  /  ${s.author||'익명'}\n`;});
+  }
+  txt+=`\n우리가 색을 돌려준 자리\n(                                        )`;
+  $('artCard').innerHTML=`<div class="artcard">${esc(txt)}</div>`;
+  window.__card=txt;
+}
+function copyCard(){
+  navigator.clipboard.writeText(window.__card||'').then(()=>toast('작품 설명문이 복사되었습니다')).catch(()=>toast('복사 실패'));
+}
+async function assign(n){
+  const LAB=['왼쪽 위','오른쪽 위','왼쪽 아래','오른쪽 아래'];
+  if(!syms.length){toast('먼저 4번 탭에서 상징을 만들어 주세요');return;}
+  const list=syms.map((s,i)=>`${i+1}. ${s.name} (${s.role}) — ${s.author||'익명'}`).join('\n');
+  const v=prompt(`[${LAB[n-1]} 캔버스]에 배정할 상징 번호를 입력하세요.\n0 = 비우기\n\n${list}`);
+  if(v===null)return;
+  const i=parseInt(v);
+  if(i===0){const cur=syms.find(x=>x.panel_no===n);if(cur)await sb.from('art_symbols').update({panel_no:null}).eq('id',cur.id);load();return;}
+  const s=syms[i-1];if(!s){toast('번호를 확인해 주세요');return;}
+  const cur=syms.find(x=>x.panel_no===n);
+  if(cur)await sb.from('art_symbols').update({panel_no:null}).eq('id',cur.id);
+  await sb.from('art_symbols').update({panel_no:n}).eq('id',s.id);
+  load();
+}
+</script>
+</body>
+</html>
