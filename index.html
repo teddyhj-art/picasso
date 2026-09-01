@@ -73,6 +73,20 @@ h3{font-family:var(--serif);font-weight:700;font-size:17px;margin:22px 0 8px;pad
 .substeps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 .substeps button{background:var(--page);border:1.5px solid var(--line);color:var(--smoke);font-size:13px;font-weight:700;padding:7px 15px;border-radius:20px}
 .substeps button.on{background:var(--ember);border-color:var(--ember);color:#fff}
+.slidegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.slideth{position:relative;cursor:pointer;border:1.5px solid var(--line);border-radius:3px;overflow:hidden;background:var(--page);transition:.15s}
+.slideth:hover{border-color:var(--ember)}
+.slideth img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.slideth span{position:absolute;right:6px;bottom:6px;background:rgba(28,27,24,.75);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:9px}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(10,9,7,.94);z-index:200;align-items:center;justify-content:center}
+.lightbox.on{display:flex}
+.lightbox img{max-width:88vw;max-height:82vh;border-radius:2px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.lbclose{position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:26px;line-height:1;padding:6px 10px}
+.lbnav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:none;color:#fff;font-size:32px;line-height:1;padding:10px 16px;border-radius:4px}
+.lbnav:hover{background:rgba(255,255,255,.24)}
+.lbprev{left:14px}
+.lbnext{right:14px}
+.lbcount{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;font-weight:700;background:rgba(255,255,255,.12);padding:5px 14px;border-radius:14px}
 .sub{display:none}.sub.on{display:block}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px;margin-top:14px}
 .fact{background:var(--page);border:1.5px solid var(--line);border-top:4px solid var(--ink);border-radius:2px;padding:14px 16px}
@@ -328,6 +342,13 @@ const GUERNICA=[
       </div>
       <div class="note strong">이제 우리 차례입니다. <b>"1. 상징 만들기"</b> 탭에서 나의 상징을 만듭니다.</div>
     </div>
+
+    <!-- 2-4 슬라이드로 다시 보기 -->
+    <div class="sub" id="see4">
+      <h2>슬라이드로 다시 보기</h2>
+      <p class="lead">수업 시간에 함께 본 슬라이드입니다. 눌러서 크게 볼 수 있습니다.</p>
+      <div class="slidegrid" id="slideGrid"></div>
+    </div>
   </div>
 
   <!-- 4. 작품 구상 계획 -->
@@ -402,6 +423,14 @@ const GUERNICA=[
 
 </div>
 
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lbclose" onclick="closeLightbox()">✕</button>
+  <button class="lbnav lbprev" onclick="lbStep(-1)">‹</button>
+  <img id="lbImg" src="" alt="">
+  <button class="lbnav lbnext" onclick="lbStep(1)">›</button>
+  <div class="lbcount" id="lbCount"></div>
+</div>
+
 <script>
 const sb=supabase.createClient(SB_URL,SB_ANON);
 const $=id=>document.getElementById(id);
@@ -427,8 +456,34 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
 });
 $('symRef').innerHTML=GUERNICA.map((g,i)=>`<div class="sref ${g[2]}" onclick="this.classList.add('open')"><b>${g[0]}</b><span class="ask">먼저 생각해 보고 클릭 →</span><span class="rev">${g[1]}</span></div>`).join('');
 /* 감상 서브탭 */
-const SUBS=['① 작품 만나기','② 상징 읽기','③ 우리 시대의 게르니카'];
+const SUBS=['① 작품 만나기','② 상징 읽기','③ 우리 시대의 게르니카','④ 슬라이드로 다시 보기'];
 $('subNav').innerHTML=SUBS.map((s,i)=>`<button class="${i===0?'on':''}" onclick="subGo(${i+1},this)">${s}</button>`).join('');
+const SLIDE_COUNT=15;
+$('slideGrid').innerHTML=Array.from({length:SLIDE_COUNT},(_,i)=>i+1).map(n=>{
+  const f='slides/slide_'+String(n).padStart(2,'0')+'.jpg';
+  return `<div class="slideth" onclick="openLightbox(${n})"><img src="${f}" loading="lazy" alt="슬라이드 ${n}"><span>${n}</span></div>`;
+}).join('');
+function openLightbox(n){
+  lbIndex=n;renderLightbox();
+  $('lightbox').classList.add('on');
+}
+function closeLightbox(){$('lightbox').classList.remove('on');}
+function lbStep(d){
+  lbIndex=((lbIndex-1+d+SLIDE_COUNT)%SLIDE_COUNT)+1;
+  renderLightbox();
+}
+function renderLightbox(){
+  const f='slides/slide_'+String(lbIndex).padStart(2,'0')+'.jpg';
+  $('lbImg').src=f;
+  $('lbCount').textContent=lbIndex+' / '+SLIDE_COUNT;
+}
+let lbIndex=1;
+document.addEventListener('keydown',e=>{
+  if(!$('lightbox').classList.contains('on'))return;
+  if(e.key==='Escape')closeLightbox();
+  if(e.key==='ArrowRight')lbStep(1);
+  if(e.key==='ArrowLeft')lbStep(-1);
+});
 initPlan();
 syncSymToSubmit();
 load();
