@@ -165,8 +165,8 @@ h3{font-family:var(--serif);font-weight:700;font-size:17px;margin:22px 0 8px;pad
 
 /* 상징 만들기 */
 .roleschips{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
-.rchip{border:1.5px solid var(--line);background:var(--page);padding:9px 18px;font-size:14.5px;border-radius:22px;font-weight:500}
-.rchip.pick{color:#fff;border-color:transparent}
+.rchip{border:1.5px solid var(--line);background:var(--page);padding:9px 18px;font-size:14.5px;border-radius:22px;font-weight:500;cursor:pointer}
+.rchip.pick{color:#fff;border-color:transparent;background:var(--ink)}
 .rchip.pick.r고통{background:var(--pain)}.rchip.pick.r방관{background:var(--bystand)}
 .rchip.pick.r저항{background:var(--resist)}.rchip.pick.r희망{background:var(--hope)}
 .hint{font-size:13px;color:var(--ash);margin-top:5px}
@@ -321,7 +321,7 @@ const GUERNICA=[
   <!-- 3. 상징 만들기 + 제작 계획(개인작업) -->
   <div class="sec" id="tSym">
     <h2>상징 만들기</h2>
-    <p class="lead">목격 장면이나 모둠 메시지를 최대 3개까지 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+    <p class="lead">"우리 기록 읽기"에서 담은 목격 장면·모둠 메시지를 바탕으로, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
 
     <h3>우리 상징 이름 · 뜻풀이 사전</h3>
     <div class="dictbar">
@@ -329,8 +329,6 @@ const GUERNICA=[
     </div>
     <div class="dict" id="dict"></div>
 
-    <h3>목격 장면 고르기 <span class="small" style="font-weight:400">— 최대 3개</span></h3>
-    <div class="wsgrid" id="symSrc"></div>
     <div class="card strong">
       <div class="picked" id="picked">↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
       <label class="small">상징 이름 — 사물·형상으로</label>
@@ -352,12 +350,24 @@ const GUERNICA=[
     <div class="card strong" style="margin-top:10px">
       <b style="font-family:var(--serif);font-size:15.5px;color:var(--ember)">2. 어떤 식으로 표현하고 싶은지</b>
       <div class="anal" style="margin-top:10px">
-        <div class="a"><b>표현 의도</b><span>고통을 표현하고 싶은지, 방관을 표현하고 싶은지, 저항을 표현하고 싶은지, 희망을 표현하고 싶은지 정합니다.</span></div>
+        <div class="a">
+          <b>표현 의도</b><span>고통을 표현하고 싶은지, 방관을 표현하고 싶은지, 저항을 표현하고 싶은지, 희망을 표현하고 싶은지 정합니다.</span>
+          <div class="roleschips" id="intentChips"></div>
+        </div>
         <div class="a"><b>스타일</b><span>피카소의 게르니카처럼 <b>입체파(큐비즘)</b> 스타일로 — 형태를 단순화하고 겹쳐서 표현합니다.</span></div>
-        <div class="a"><b>형태</b><span><b>입체</b> 작품 또는 <b>평면</b> 작품 중 하나를 고릅니다.</span></div>
-        <div class="a"><b>입체로 만든다면</b><span><b>책상 위에 세우기</b> 또는 <b>배경 벽(우드락판)에 붙이기</b> 중 정합니다.</span></div>
-        <div class="a"><b>재료와 방법</b><span>그리기·채색 / 하드보드나 검정 도화지를 오려 붙이기(콜라주) / 점토로 입체 형상 만들기 중 골라 사용합니다.</span></div>
-        <div class="a"><b>색</b><span>피카소처럼 흑백과 회색만으로 표현하되, 딱 한 곳에만 포인트 색을 쓸 수 있다면 어디에 어떤 색을 쓰고 싶은지, 그 이유도 함께 정합니다.</span></div>
+        <div class="a">
+          <b>형태</b><span><b>입체</b> 작품 또는 <b>평면</b> 작품 중 하나를 고릅니다.</span>
+          <div class="roleschips" id="formChips"></div>
+        </div>
+        <div class="a">
+          <b>재료와 방법</b><span id="methodHint">형태를 먼저 고르면, 그에 맞는 재료·방법을 고를 수 있습니다.</span>
+          <div class="roleschips" id="methodChips"></div>
+        </div>
+        <div class="a">
+          <b>색</b><span>피카소처럼 <b>흑백과 회색(무채색)</b>만으로 표현합니다. 딱 한 곳에만 포인트 색을 쓸 수도 있습니다.</span>
+          <div class="roleschips" id="colorChips"></div>
+          <input type="text" id="colorNote" style="margin-top:8px" placeholder="포인트 컬러를 쓴다면 어디에 어떤 색을, 왜 쓰고 싶은지 짧게 적어보세요" oninput="syncPlanToSubmit()">
+        </div>
       </div>
     </div>
 
@@ -377,8 +387,8 @@ const GUERNICA=[
     <h2>제출하기</h2>
     <p class="lead">학번과 이름을 적고, 오늘 고른 장면과 만든 상징, 표현 계획을 선생님께 제출합니다.</p>
     <div class="card strong">
-      <label class="small">학번</label>
-      <input type="text" id="subNum" placeholder="예: 10203" inputmode="numeric">
+      <label class="small">학번 <span class="small" style="font-weight:400">— 학년·반·번호 4자리, 예: 1101</span></label>
+      <input type="text" id="subNum" placeholder="예: 1101" inputmode="numeric" maxlength="4" pattern="[0-9]{4}">
       <label class="small" style="display:block;margin-top:14px">이름</label>
       <input type="text" id="subName" placeholder="이름을 입력하세요">
       <label class="small" style="display:block;margin-top:14px">선택한 목격 장면</label>
@@ -390,16 +400,9 @@ const GUERNICA=[
       <label class="small" style="display:block;margin-top:14px">표현하고 싶은 모습 — 구체적 아이디어</label>
       <p class="small" style="margin-top:2px">상징을 실제로 어떤 모습으로 그리거나 만들지, 눈에 보이듯 구체적으로 적어보세요.</p>
       <textarea id="subIdea" rows="4" placeholder="예: 화면 가운데에 커다란 닫힌 문을 검정 도화지로 오려 붙이고, 문틈 사이로만 흰색 한 줄기 빛이 새어나오게 표현하고 싶다."></textarea>
-      <label class="small" style="display:block;margin-top:14px">표현 의도</label>
-      <select id="subIntent">
-        <option value="">선택 안 함</option>
-        <option value="고통">고통</option>
-        <option value="방관">방관</option>
-        <option value="저항">저항</option>
-        <option value="희망">희망</option>
-      </select>
-      <label class="small" style="display:block;margin-top:14px">표현 방식 — 형태·재료 등</label>
-      <textarea id="subStyle" rows="2" placeholder="예: 평면 / 검정 도화지 콜라주 / 한 곳에만 빨강 포인트"></textarea>
+      <label class="small" style="display:block;margin-top:14px">표현 계획 요약</label>
+      <div class="picked" id="planSummary">아직 정한 내용이 없습니다 — "4. 작품 구상 계획" 탭에서 골라보세요.</div>
+      <p class="small" style="margin-top:6px">내용을 바꾸려면 <b>"4. 작품 구상 계획"</b> 탭에서 다시 고르면 여기에도 바로 반영됩니다.</p>
       <div class="row"><button class="btn" onclick="submitFinal()">제출하기</button></div>
       <p class="small" style="margin-top:10px">제출한 내용은 선생님이 확인하는 구글 시트에 기록됩니다.</p>
     </div>
@@ -416,6 +419,15 @@ function toast(m){const t=document.createElement('div');t.className='toast';t.te
 let ws=[],syms=[],groups=[],teamMsgs=[],pickedList=[];
 const MAX_PICK=3;
 const MAX_LIST=20;
+/* 작품 구상 계획 — 여기서 고른 내용이 "제출하기"에도 그대로 반영된다 */
+let planState={intent:'',form:'',method:'',pointColor:''};
+const INTENT_OPTS=['고통','방관','저항','희망'];
+const FORM_OPTS=['입체','평면'];
+const METHOD_OPTS={
+  '입체':['점토로 책상 위에 세우기','그림을 하드보드지·우드락판에 붙여 세우기'],
+  '평면':['그리기·채색','검정 도화지 콜라주']
+};
+const COLOR_OPTS=['포인트 컬러 없음(무채색만)','포인트 컬러 사용'];
 
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
@@ -426,6 +438,7 @@ $('symRef').innerHTML=GUERNICA.map((g,i)=>`<div class="sref ${g[2]}" onclick="th
 /* 감상 서브탭 */
 const SUBS=['① 작품 만나기','② 상징 읽기','③ 우리 시대의 게르니카'];
 $('subNav').innerHTML=SUBS.map((s,i)=>`<button class="${i===0?'on':''}" onclick="subGo(${i+1},this)">${s}</button>`).join('');
+initPlan();
 load();
 sb.channel('art-global')
   .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
@@ -442,7 +455,58 @@ async function load(){
   ws=w.data||[];syms=s.data||[];
   groups=groupedWs();
   teamMsgs=groupedTeamMsgs(tm.data||[]);
-  renderRead();renderSymSrc();renderDict();renderClassStat();refreshSubScene();renderPicked();
+  renderRead();renderDict();renderClassStat();refreshSubScene();renderPicked();
+}
+function initPlan(){
+  renderIntentChips();renderFormChips();renderMethodChips();renderColorChips();syncPlanToSubmit();
+}
+function renderIntentChips(){
+  $('intentChips').innerHTML=INTENT_OPTS.map(o=>
+    `<button type="button" class="rchip ${planState.intent===o?'pick r'+o:''}" onclick="pickIntent('${o}')">${o}</button>`).join('');
+}
+function pickIntent(o){
+  planState.intent=planState.intent===o?'':o;
+  renderIntentChips();syncPlanToSubmit();
+}
+function renderFormChips(){
+  $('formChips').innerHTML=FORM_OPTS.map(o=>
+    `<button type="button" class="rchip ${planState.form===o?'pick':''}" onclick="pickForm('${o}')">${o}</button>`).join('');
+}
+function pickForm(o){
+  if(planState.form===o){planState.form='';planState.method='';}
+  else{planState.form=o;planState.method='';}
+  renderFormChips();renderMethodChips();syncPlanToSubmit();
+}
+function renderMethodChips(){
+  const opts=METHOD_OPTS[planState.form]||[];
+  $('methodHint').textContent=planState.form?`${planState.form} 작품에 어울리는 재료·방법을 고릅니다.`:'형태를 먼저 고르면, 그에 맞는 재료·방법을 고를 수 있습니다.';
+  $('methodChips').innerHTML=opts.map(o=>
+    `<button type="button" class="rchip ${planState.method===o?'pick':''}" onclick="pickMethod('${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
+}
+function pickMethod(o){
+  planState.method=planState.method===o?'':o;
+  renderMethodChips();syncPlanToSubmit();
+}
+function renderColorChips(){
+  $('colorChips').innerHTML=COLOR_OPTS.map(o=>
+    `<button type="button" class="rchip ${planState.pointColor===o?'pick':''}" onclick="pickColor('${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
+}
+function pickColor(o){
+  planState.pointColor=planState.pointColor===o?'':o;
+  renderColorChips();syncPlanToSubmit();
+}
+function syncPlanToSubmit(){
+  const el=$('planSummary');if(!el)return;
+  const parts=[];
+  if(planState.intent)parts.push(`표현 의도 — ${planState.intent}`);
+  if(planState.form)parts.push(`형태 — ${planState.form}`);
+  if(planState.method)parts.push(`재료·방법 — ${planState.method}`);
+  if(planState.pointColor)parts.push(`색 — ${planState.pointColor}`);
+  const note=$('colorNote')?$('colorNote').value.trim():'';
+  if(note)parts.push(`포인트 컬러 메모 — ${note}`);
+  el.innerHTML=parts.length?
+    `<ul style="margin:6px 0 0 18px">${parts.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`
+    :'아직 정한 내용이 없습니다 — "4. 작품 구상 계획" 탭에서 골라보세요.';
 }
 /* 공백·문장부호 차이만 있는 비슷한 문장을 하나로 묶기 위한 정규화 키 */
 function normKey(s){return(s||'').replace(/[\s.,!?·"'’‘“”\-–—]/g,'');}
@@ -542,9 +606,6 @@ function groupCard(g,i,type){
     <button type="button" class="btn ${sel?'':'ghost'}" style="margin-top:10px;padding:7px 16px;font-size:13px">${sel?'담음 ✓ · 빼기':'담기'}</button>
   </div>`;
 }
-function renderSymSrc(){
-  $('symSrc').innerHTML=groups.length?groups.map((g,i)=>groupCard(g,i,'ws')).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
-}
 function pickGroup(type,i){
   const src=type==='team'?teamMsgs:groups;
   const g=src[i];if(!g)return;
@@ -555,7 +616,7 @@ function pickGroup(type,i){
     if(pickedList.length>=MAX_PICK){toast(`장면·메시지는 최대 ${MAX_PICK}개까지 담을 수 있어요`);return;}
     pickedList.push({...g,type});
   }
-  renderRead();renderSymSrc();refreshSubScene();renderPicked();
+  renderRead();refreshSubScene();renderPicked();
 }
 function renderPicked(){
   const el=$('picked');if(!el)return;
@@ -590,8 +651,11 @@ async function submitFinal(){
     symName:$('subSymName').value.trim(),
     symMean:$('subSymMean').value.trim(),
     idea:$('subIdea').value.trim(),
-    intent:$('subIntent').value,
-    style:$('subStyle').value.trim()
+    intent:planState.intent,
+    form:planState.form,
+    method:planState.method,
+    pointColor:planState.pointColor,
+    colorNote:$('colorNote').value.trim()
   };
   try{
     await fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});

@@ -21,7 +21,8 @@
  * - 처음 제출이 들어오면 이 스프레드시트 안에 "게르니카_작업실_제출" 이라는
  *   새 탭을 자동으로 만듭니다 (기존의 다른 탭들은 전혀 건드리지 않습니다).
  * - 학생이 "제출하기"를 누를 때마다 한 줄씩 아래 항목이 새 탭에 쌓입니다:
- *   제출시간 / 학번 / 이름 / 선택한 목격 장면 / 상징 이름 / 뜻풀이 / 표현하고 싶은 모습(구체적 아이디어) / 표현 의도 / 표현 방식
+ *   제출시간 / 학번 / 이름 / 선택한 목격 장면·모둠 메시지 / 상징 이름 / 뜻풀이 /
+ *   표현하고 싶은 모습(구체적 아이디어) / 표현 의도 / 형태 / 재료·방법 / 포인트 컬러 / 포인트 컬러 메모
  */
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -29,8 +30,8 @@ function doPost(e) {
   var sh = ss.getSheetByName(sheetName);
   if (!sh) {
     sh = ss.insertSheet(sheetName);
-    sh.appendRow(['제출시간', '학번', '이름', '선택한 목격 장면', '상징 이름', '뜻풀이', '표현하고 싶은 모습(구체적 아이디어)', '표현 의도', '표현 방식']);
-    sh.getRange(1, 1, 1, 9).setFontWeight('bold');
+    sh.appendRow(['제출시간', '학번', '이름', '선택한 목격 장면·모둠 메시지', '상징 이름', '뜻풀이', '표현하고 싶은 모습(구체적 아이디어)', '표현 의도', '형태', '재료·방법', '포인트 컬러', '포인트 컬러 메모']);
+    sh.getRange(1, 1, 1, 12).setFontWeight('bold');
   }
 
   var data = {};
@@ -49,7 +50,10 @@ function doPost(e) {
     data.symMean || '',
     data.idea || '',
     data.intent || '',
-    data.style || ''
+    data.form || '',
+    data.method || '',
+    data.pointColor || '',
+    data.colorNote || ''
   ]);
 
   return ContentService
