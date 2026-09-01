@@ -323,19 +323,14 @@ const GUERNICA=[
     <h2>상징 만들기</h2>
     <p class="lead">"우리 기록 읽기"에서 담은 목격 장면·모둠 메시지를 바탕으로, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
 
-    <h3>우리 상징 이름 · 뜻풀이 사전</h3>
-    <div class="dictbar">
-      <span class="count" id="dCount"></span>
-    </div>
-    <div class="dict" id="dict"></div>
-
     <div class="card strong">
       <div class="picked" id="picked">↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
       <label class="small">상징 이름 — 사물·형상으로</label>
-      <input type="text" id="sName" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
+      <input type="text" id="sName" oninput="syncSymToSubmit()" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
       <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
-      <textarea id="sMean" rows="3" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
+      <textarea id="sMean" rows="3" oninput="syncSymToSubmit()" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
       <div class="row"><button class="btn" onclick="addSymbol()">사전에 등재하기</button></div>
+      <p class="small" style="margin-top:10px">작성한 이름·뜻풀이는 "5. 제출하기" 탭에 자동으로 채워집니다.</p>
     </div>
   </div>
 
@@ -393,10 +388,9 @@ const GUERNICA=[
       <input type="text" id="subName" placeholder="이름을 입력하세요">
       <label class="small" style="display:block;margin-top:14px">선택한 목격 장면</label>
       <div class="picked" id="subScene">↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다</div>
-      <label class="small" style="display:block;margin-top:14px">내가 만든 상징 — 이름</label>
-      <input type="text" id="subSymName" placeholder="예: 닫힌 문">
-      <label class="small" style="display:block;margin-top:14px">내가 만든 상징 — 뜻풀이</label>
-      <textarea id="subSymMean" rows="3" placeholder="이 상징은 무엇을 대신하나요?"></textarea>
+      <label class="small" style="display:block;margin-top:14px">내가 만든 상징</label>
+      <div class="picked" id="symSummary">아직 "3. 상징 만들기"에서 작성한 내용이 없습니다.</div>
+      <p class="small" style="margin-top:6px">내용을 바꾸려면 <b>"3. 상징 만들기"</b> 탭에서 다시 적으면 여기에도 바로 반영됩니다.</p>
       <label class="small" style="display:block;margin-top:14px">표현하고 싶은 모습 — 구체적 아이디어</label>
       <p class="small" style="margin-top:2px">상징을 실제로 어떤 모습으로 그리거나 만들지, 눈에 보이듯 구체적으로 적어보세요.</p>
       <textarea id="subIdea" rows="4" placeholder="예: 화면 가운데에 커다란 닫힌 문을 검정 도화지로 오려 붙이고, 문틈 사이로만 흰색 한 줄기 빛이 새어나오게 표현하고 싶다."></textarea>
@@ -439,6 +433,7 @@ $('symRef').innerHTML=GUERNICA.map((g,i)=>`<div class="sref ${g[2]}" onclick="th
 const SUBS=['① 작품 만나기','② 상징 읽기','③ 우리 시대의 게르니카'];
 $('subNav').innerHTML=SUBS.map((s,i)=>`<button class="${i===0?'on':''}" onclick="subGo(${i+1},this)">${s}</button>`).join('');
 initPlan();
+syncSymToSubmit();
 load();
 sb.channel('art-global')
   .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
@@ -455,7 +450,7 @@ async function load(){
   ws=w.data||[];syms=s.data||[];
   groups=groupedWs();
   teamMsgs=groupedTeamMsgs(tm.data||[]);
-  renderRead();renderDict();renderClassStat();refreshSubScene();renderPicked();
+  renderRead();renderClassStat();refreshSubScene();renderPicked();
 }
 function initPlan(){
   renderIntentChips();renderFormChips();renderMethodChips();renderColorChips();syncPlanToSubmit();
@@ -631,8 +626,15 @@ async function addSymbol(){
   const{error}=await sb.from('art_symbols').insert({
     class_code:'',team:'',name,meaning:mean,
     source:pickedList.length?pickedList.map(p=>p.text).join(' / '):null,author:'익명'});
-  if(error){console.error('art_symbols insert error:',error);toast('등재 실패 — '+(error.message||error.hint||JSON.stringify(error)));return;}
-  $('sName').value='';$('sMean').value='';toast('사전에 등재되었습니다');
+  if(error){console.error('art_symbols insert error:',error);toast('사전 등재는 실패했지만 제출하기에는 영향 없어요 — '+(error.message||error.hint||JSON.stringify(error)));return;}
+  toast('사전에도 등재되었습니다');
+}
+function syncSymToSubmit(){
+  const el=$('symSummary');if(!el)return;
+  const name=$('sName').value.trim(),mean=$('sMean').value.trim();
+  el.innerHTML=(name||mean)?
+    `<b>${esc(name||'(이름 없음)')}</b>${mean?`<br>${esc(mean)}`:''}`
+    :'아직 "3. 상징 만들기"에서 작성한 내용이 없습니다.';
 }
 function refreshSubScene(){
   const el=$('subScene');if(!el)return;
@@ -648,8 +650,8 @@ async function submitFinal(){
   const payload={
     num,name,
     scene:pickedList.length?pickedList.map(p=>p.text).join(' / '):'',
-    symName:$('subSymName').value.trim(),
-    symMean:$('subSymMean').value.trim(),
+    symName:$('sName').value.trim(),
+    symMean:$('sMean').value.trim(),
     idea:$('subIdea').value.trim(),
     intent:planState.intent,
     form:planState.form,
