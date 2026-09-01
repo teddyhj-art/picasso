@@ -318,21 +318,24 @@ const GUERNICA=[
   <!-- 3. 상징 만들기 + 제작 계획(개인작업) -->
   <div class="sec" id="tSym">
     <h2>상징 만들기</h2>
-    <p class="lead">목격 장면 하나를 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+    <p class="lead">목격 장면을 최대 3개까지 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+
+    <h3>우리 상징 이름 · 뜻풀이 사전</h3>
+    <div class="dictbar">
+      <span class="count" id="dCount"></span>
+    </div>
+    <div class="dict" id="dict"></div>
+
+    <h3>목격 장면 고르기 <span class="small" style="font-weight:400">— 최대 3개</span></h3>
     <div class="wsgrid" id="symSrc"></div>
     <div class="card strong">
-      <div class="picked" id="picked">↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (없이도 만들 수 있어요)</div>
+      <div class="picked" id="picked">↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
       <label class="small">상징 이름 — 사물·형상으로</label>
       <input type="text" id="sName" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
       <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
       <textarea id="sMean" rows="3" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
       <div class="row"><button class="btn" onclick="addSymbol()">사전에 등재하기</button></div>
     </div>
-    <h3>우리 상징 사전</h3>
-    <div class="dictbar">
-      <span class="count" id="dCount"></span>
-    </div>
-    <div class="dict" id="dict"></div>
   </div>
 
   <!-- 4. 작품 구상 계획 -->
@@ -381,6 +384,9 @@ const GUERNICA=[
       <input type="text" id="subSymName" placeholder="예: 닫힌 문">
       <label class="small" style="display:block;margin-top:14px">내가 만든 상징 — 뜻풀이</label>
       <textarea id="subSymMean" rows="3" placeholder="이 상징은 무엇을 대신하나요?"></textarea>
+      <label class="small" style="display:block;margin-top:14px">표현하고 싶은 모습 — 구체적 아이디어</label>
+      <p class="small" style="margin-top:2px">상징을 실제로 어떤 모습으로 그리거나 만들지, 눈에 보이듯 구체적으로 적어보세요.</p>
+      <textarea id="subIdea" rows="4" placeholder="예: 화면 가운데에 커다란 닫힌 문을 검정 도화지로 오려 붙이고, 문틈 사이로만 흰색 한 줄기 빛이 새어나오게 표현하고 싶다."></textarea>
       <label class="small" style="display:block;margin-top:14px">표현 의도</label>
       <select id="subIntent">
         <option value="">선택 안 함</option>
@@ -404,7 +410,8 @@ const sb=supabase.createClient(SB_URL,SB_ANON);
 const $=id=>document.getElementById(id);
 const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900);}
-let ws=[],syms=[],groups=[],pickedWs=null;
+let ws=[],syms=[],groups=[],pickedList=[];
+const MAX_PICK=3;
 
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
@@ -428,7 +435,7 @@ async function load(){
   ]);
   ws=w.data||[];syms=s.data||[];
   groups=groupedWs();
-  renderRead();renderSymSrc();renderDict();renderClassStat();refreshSubScene();
+  renderRead();renderSymSrc();renderDict();renderClassStat();refreshSubScene();renderPicked();
 }
 function groupedWs(){
   const map=new Map();
@@ -486,22 +493,34 @@ function renderRead(){
 }
 function groupCard(g,i){
   const emo=[...g.emotions].slice(0,4).map(e=>`<span>${esc(e)}</span>`).join('');
-  const sel=pickedWs&&pickedWs.text===g.text;
+  const sel=pickedList.some(p=>p.text===g.text);
   return `<div class="wsc c${g.category} ${sel?'sel':''}" onclick="pickGroup(${i})">
     <span class="cat">${esc(CATS[g.category]||CATS[0])}</span>
     <div class="wit">${esc(g.text)}</div>
     ${g.count>1?`<div class="sub">같은 내용 · ${g.count}번 기록됨</div>`:''}
     ${emo?`<div class="emo">${emo}</div>`:''}
-    <button type="button" class="btn ghost" style="margin-top:10px;padding:7px 16px;font-size:13px">${sel?'담음 ✓':'담기'}</button>
+    <button type="button" class="btn ${sel?'':'ghost'}" style="margin-top:10px;padding:7px 16px;font-size:13px">${sel?'담음 ✓ · 빼기':'담기'}</button>
   </div>`;
 }
 function renderSymSrc(){
   $('symSrc').innerHTML=groups.length?groups.map((g,i)=>groupCard(g,i)).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
 }
 function pickGroup(i){
-  pickedWs=groups[i]||null;
-  renderRead();renderSymSrc();refreshSubScene();
-  if(pickedWs)$('picked').innerHTML=`선택한 장면 — <b>${esc(pickedWs.text)}</b>${pickedWs.count>1?` <span class="small">(${pickedWs.count}번 기록됨)</span>`:''}`;
+  const g=groups[i];if(!g)return;
+  const idx=pickedList.findIndex(p=>p.text===g.text);
+  if(idx>=0){
+    pickedList.splice(idx,1);
+  }else{
+    if(pickedList.length>=MAX_PICK){toast(`목격 장면은 최대 ${MAX_PICK}개까지 담을 수 있어요`);return;}
+    pickedList.push(g);
+  }
+  renderRead();renderSymSrc();refreshSubScene();renderPicked();
+}
+function renderPicked(){
+  const el=$('picked');if(!el)return;
+  el.innerHTML=pickedList.length?
+    `선택한 장면 (${pickedList.length}/${MAX_PICK})<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${esc(p.text)}${p.count>1?` <span class="small">— ${p.count}번 기록됨</span>`:''}</li>`).join('')}</ul>`
+    :`↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (최대 ${MAX_PICK}개까지, 없이도 만들 수 있어요)`;
 }
 async function addSymbol(){
   const name=$('sName').value.trim(),mean=$('sMean').value.trim();
@@ -509,13 +528,15 @@ async function addSymbol(){
   if(!mean){toast('뜻풀이를 입력하세요');return;}
   const{error}=await sb.from('art_symbols').insert({
     class_code:'',team:'',name,meaning:mean,
-    source:pickedWs?pickedWs.text:null,author:'익명'});
+    source:pickedList.length?pickedList.map(p=>p.text).join(' / '):null,author:'익명'});
   if(error){toast('등재 실패');return;}
   $('sName').value='';$('sMean').value='';toast('사전에 등재되었습니다');
 }
 function refreshSubScene(){
   const el=$('subScene');if(!el)return;
-  el.innerHTML=pickedWs?`선택한 장면 — <b>${esc(pickedWs.text)}</b>`:'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다';
+  el.innerHTML=pickedList.length?
+    `선택한 장면 (${pickedList.length}개)<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${esc(p.text)}</li>`).join('')}</ul>`
+    :'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다';
 }
 async function submitFinal(){
   const num=$('subNum').value.trim(),name=$('subName').value.trim();
@@ -524,9 +545,10 @@ async function submitFinal(){
   if(!SHEET_WEBHOOK_URL){toast('제출 연동 주소가 아직 설정되지 않았습니다 — 선생님께 문의하세요');return;}
   const payload={
     num,name,
-    scene:pickedWs?pickedWs.text:'',
+    scene:pickedList.length?pickedList.map(p=>p.text).join(' / '):'',
     symName:$('subSymName').value.trim(),
     symMean:$('subSymMean').value.trim(),
+    idea:$('subIdea').value.trim(),
     intent:$('subIntent').value,
     style:$('subStyle').value.trim()
   };
