@@ -3,296 +3,400 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>우리 안의 게르니카</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<title>게르니카 작업실 — 우리 모둠의 전쟁</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--ink:#1a1a1d;--smoke:#57575c;--ash:#9c9ca1;--paper:#f7f6f2;--card:#232327;--line:#3a3a3f;
---ember:#b3271c;--ember-lt:#ff6b5e;--a:#5b8c8c;--b:#d1584c;
+:root{--ink:#1c1b18;--smoke:#5b584f;--ash:#98948a;--paper:#f6f4ee;--page:#fffdf8;--line:#d8d4c8;
+--ember:#b3271c;--ember-dk:#8f1f16;
+--pain:#7a2020;--bystand:#54442a;--resist:#2e4a4a;--hope:#3d5c3d;
 --serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--sans);background:var(--ink);color:var(--paper);min-height:100vh;font-size:16px;line-height:1.6}
-.wrap{max-width:900px;margin:0 auto;padding:24px 18px 90px}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;font-size:16px;line-height:1.65}
+.wrap{max-width:960px;margin:0 auto;padding:26px 18px 90px}
 .hide{display:none!important}
 button{font-family:var(--sans);cursor:pointer}
-.tag{font-size:12px;letter-spacing:.24em;color:var(--ember-lt);font-weight:700;margin-bottom:8px}
-h1{font-family:var(--serif);font-weight:900;font-size:clamp(23px,4.2vw,34px);line-height:1.3}
-.sub{color:var(--ash);font-size:14.5px;margin-top:8px}
-.btn{background:var(--ember);color:#fff;border:none;font-weight:700;font-size:16px;padding:13px 26px;border-radius:2px}
-.btn:hover{background:#8f1f16}
-.btn.ghost{background:none;border:1px solid var(--line);color:var(--paper)}
-.btn:disabled{background:var(--line);color:#77777c;cursor:default}
-input,select,textarea{font-family:var(--sans);font-size:15.5px;padding:12px 14px;background:var(--card);color:var(--paper);border:1px solid var(--line);border-radius:2px;width:100%}
+.btn{background:var(--ember);color:#fff;border:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:2px}
+.btn:hover{background:var(--ember-dk)}
+.btn.ghost{background:none;border:1.5px solid var(--ink);color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+input,select,textarea{font-family:var(--sans);font-size:15.5px;padding:12px 14px;background:var(--page);color:var(--ink);border:1.5px solid var(--line);border-radius:2px;width:100%}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--ember);border-color:var(--ember)}
 textarea{resize:vertical}
 .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .row>*{flex:1;min-width:150px}.row .btn{flex:0 0 auto}
-.small{font-size:13px;color:var(--ash)}
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--paper);color:var(--ink);font-weight:700;padding:13px 24px;border-radius:30px;z-index:99}
-.gate{max-width:420px;margin:8vh auto 0;text-align:center}
-.roles{display:grid;gap:11px;margin-top:26px}
-.rolebtn{background:var(--card);border:1px solid var(--line);color:var(--paper);padding:20px;border-radius:4px;font-size:17px;font-weight:700}
-.rolebtn:hover{border-color:var(--ember)}
-.rolebtn small{display:block;font-weight:400;color:var(--ash);font-size:13px;margin-top:5px}
-.wsec{border:1px solid var(--line);border-left:4px solid var(--ember);border-radius:3px;padding:16px 18px;margin-top:14px;background:var(--card)}
-.wsec h3{font-family:var(--serif);font-weight:700;font-size:17px;margin-bottom:4px}
-.q{font-size:14px;font-weight:700;margin:13px 0 5px}
-.q small{font-weight:400;color:var(--ash);font-size:12.5px;margin-left:5px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chip{border:1px solid var(--line);background:var(--card);color:var(--paper);padding:8px 15px;font-size:14px;border-radius:20px}
-.chip:hover{border-color:var(--ash)}
-.chip.pick{background:var(--ember);border-color:var(--ember)}
-.ab{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-@media(max-width:600px){.ab{grid-template-columns:1fr}}
-.abtn{background:var(--card);border:1.5px solid var(--line);color:var(--paper);border-radius:3px;padding:14px;text-align:left}
-.abtn b{font-family:var(--serif);font-size:16px;display:block}
-.abtn span{font-size:12.5px;color:var(--ash);display:block;margin-top:4px}
-.abtn.pick.A{border-color:var(--a);background:rgba(91,140,140,.18)}
-.abtn.pick.B{border-color:var(--b);background:rgba(209,88,76,.15)}
-.bar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--ink) 26%);padding:20px 0 12px;margin-top:18px}
-.done{border:1px solid #3f7d4e;border-radius:4px;padding:30px;text-align:center;background:var(--card);margin-top:20px}
-.done b{color:#7fc48f;font-size:19px;font-family:var(--serif)}
-.filters{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
-.filters button{background:none;border:1px solid var(--line);color:var(--ash);font-size:13px;font-weight:700;padding:6px 14px;border-radius:16px}
-.filters button.on{background:var(--paper);color:var(--ink);border-color:var(--paper)}
-.tabs{display:flex;gap:6px;margin-top:16px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{background:none;border:none;color:var(--ash);font-weight:700;font-size:15px;padding:12px 15px;border-bottom:3px solid transparent;white-space:nowrap}
-.tabs button.on{color:var(--paper);border-bottom-color:var(--ember)}
-.sec{display:none;padding-top:14px}.sec.on{display:block}
-.team{border:1px solid var(--line);border-radius:4px;margin-top:16px;overflow:hidden}
-.thead{background:var(--card);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-.thead b{font-family:var(--serif);font-size:18px;color:var(--ember-lt)}
-.tp{font-size:11.5px;font-weight:700;padding:2px 10px;border-radius:10px;color:#fff}
-.tp.A{background:var(--a)}.tp.B{background:var(--b)}
-.thead .cnt{font-size:12.5px;color:var(--ash)}
-.thead .cp{margin-left:auto;font-size:12.5px;font-weight:700;background:none;border:1px solid var(--line);color:var(--ash);padding:5px 12px;border-radius:14px}
-.thead .cp:hover{border-color:var(--paper);color:var(--paper)}
-.tbody{padding:14px 16px 16px}
-.msg{background:var(--paper);color:var(--ink);border-radius:3px;padding:16px 18px;font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.55}
-.meta{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:12px;font-size:13.5px;color:var(--ash)}
-.meta dt{color:var(--ember-lt);font-weight:700;white-space:nowrap}
-.wl{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
-.wl p{font-size:13.5px;color:var(--paper);margin:5px 0}
-.wl p::before{content:"· ";color:var(--ember-lt)}
-.wl .who{color:var(--ash);font-size:11.5px;margin-left:5px}
-.empty{color:#55555a;padding:36px 0;text-align:center}
-.bigstat{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
-.bigstat div{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:14px 20px;text-align:center;min-width:110px}
-.bigstat b{font-family:var(--serif);font-size:30px;display:block;line-height:1.2;color:var(--ember-lt)}
+.small{font-size:13px;color:var(--smoke)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-weight:700;padding:13px 24px;border-radius:30px;z-index:99}
+
+/* 표지 */
+.masthead{text-align:center;border-bottom:3px double var(--ink);padding-bottom:22px;margin-bottom:6px}
+.masthead .over{font-size:12px;letter-spacing:.3em;color:var(--ember);font-weight:700}
+.masthead h1{font-family:var(--serif);font-weight:900;font-size:clamp(28px,5vw,46px);margin:8px 0 4px}
+.masthead .under{font-size:14px;color:var(--smoke)}
+
+/* 탭 */
+.tabs{display:flex;gap:4px;margin:22px 0 6px;border-bottom:2px solid var(--ink);overflow-x:auto}
+.tabs button{background:none;border:none;font-weight:700;font-size:15px;color:var(--smoke);padding:12px 16px;border-bottom:4px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ember)}
+.sec{display:none;padding-top:16px}.sec.on{display:block}
+h2{font-family:var(--serif);font-weight:900;font-size:22px;margin:8px 0 6px}
+h3{font-family:var(--serif);font-weight:700;font-size:17px;margin:22px 0 8px;padding-left:10px;border-left:4px solid var(--ember)}
+.lead{color:var(--smoke);font-size:14.5px}
+.card{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:18px 20px;margin-top:14px}
+.card.strong{border-color:var(--ink)}
+
+/* 도덕 기록 */
+.wsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
+.wsc{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:14px 16px;cursor:pointer;transition:.15s}
+.wsc:hover{border-color:var(--ash)}
+.wsc.sel{border-color:var(--ember);box-shadow:0 0 0 2px var(--ember)}
+.wsc .cat{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--smoke);padding:2px 9px;border-radius:10px;margin-bottom:6px}
+.wsc.c0 .cat{background:var(--pain)}.wsc.c1 .cat{background:var(--bystand)}.wsc.c2 .cat{background:var(--resist)}.wsc.c3 .cat{background:#3d3d5c}.wsc.c4 .cat{background:#4a3050}
+.wsc .wit{font-family:var(--serif);font-weight:700;font-size:15px;line-height:1.5}
+.wsc .sub{font-size:12.5px;color:var(--smoke);margin-top:6px}
+.wsc .emo{margin-top:7px;display:flex;gap:4px;flex-wrap:wrap}
+.wsc .emo span{font-size:11px;background:#e9e6dd;padding:2px 8px;border-radius:9px}
+.empty{color:var(--ash);padding:34px 0;text-align:center;grid-column:1/-1}
+
+/* 감상: 게르니카 상징 */
+.symref{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.sref{background:var(--page);border:1.5px solid var(--line);border-left-width:5px;border-radius:3px;padding:13px 15px}
+.sref b{font-family:var(--serif);font-size:16px;display:block}
+.sref span{font-size:13px;color:var(--smoke);display:block;margin-top:4px}
+.sref.p{border-left-color:var(--pain)}.sref.b{border-left-color:var(--bystand)}
+.sref.r{border-left-color:var(--resist)}.sref.h{border-left-color:var(--hope)}
+.qbox{background:var(--ink);color:var(--paper);border-radius:3px;padding:18px 22px;margin-top:14px}
+.qbox p{font-family:var(--serif);font-weight:700;font-size:17px;margin:7px 0}
+.qbox p::before{content:"⚓ ";color:#ff6b5e}
+
+/* 감상 탭 */
+.substeps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.substeps button{background:var(--page);border:1.5px solid var(--line);color:var(--smoke);font-size:13px;font-weight:700;padding:7px 15px;border-radius:20px}
+.substeps button.on{background:var(--ember);border-color:var(--ember);color:#fff}
+.sub{display:none}.sub.on{display:block}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px;margin-top:14px}
+.fact{background:var(--page);border:1.5px solid var(--line);border-top:4px solid var(--ink);border-radius:2px;padding:14px 16px}
+.fact b{font-family:var(--serif);font-size:17px;display:block;margin-bottom:5px}
+.fact span{font-size:13.5px;color:var(--smoke)}
+.note{background:var(--page);border-left:5px solid var(--smoke);padding:12px 16px;font-size:13.5px;color:var(--smoke);margin-top:16px}
+.note.strong{border-left-color:var(--ember);color:var(--ink);font-size:15px}
+.note b{color:var(--ember)}
+.compo{margin-top:14px}
+.anal{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px;margin-top:14px}
+.anal .a{background:var(--page);border:1.5px solid var(--line);border-radius:2px;padding:13px 15px}
+.anal .a b{font-family:var(--serif);font-size:15.5px;display:block;margin-bottom:4px}
+.anal .a span{font-size:13.5px;color:var(--smoke)}
+.anal .a b+span b{color:var(--ember)}
+.sref{cursor:pointer}
+.sref .rev{display:none}
+.sref.open .rev{display:block}
+.sref .ask{font-size:12.5px;color:var(--ember);margin-top:6px;display:block}
+.sref.open .ask{display:none}
+.cmp{display:grid;grid-template-columns:1fr 50px 1fr;align-items:center;gap:8px;margin-top:14px}
+@media(max-width:700px){.cmp{grid-template-columns:1fr;gap:14px}}
+.cbox{border:1.5px solid var(--line);border-radius:3px;padding:16px 18px;background:var(--page)}
+.cbox b{font-family:var(--serif);font-size:16px;display:block;margin-bottom:8px}
+.cbox ul{padding-left:18px}.cbox li{font-size:14px;margin:5px 0}
+.cbox.old{color:var(--smoke)}
+.cbox.now{border-color:var(--ember);background:#fdf6f5}
+.cbox.now b{color:var(--ember)}
+.carrow{text-align:center;font-size:26px;color:var(--ember)}
+.bars{margin-top:12px}
+.bar{display:grid;grid-template-columns:120px 1fr 46px;align-items:center;gap:10px;margin:7px 0;font-size:13.5px}
+.bar .fill{height:20px;background:var(--ember);border-radius:2px;min-width:3px}
+.bar .n{text-align:right;color:var(--smoke);font-weight:700}
+.bigstat{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px}
+.bigstat div{background:var(--ink);color:var(--paper);border-radius:3px;padding:14px 20px;text-align:center}
+.bigstat b{font-family:var(--serif);font-size:30px;display:block;line-height:1.2}
 .bigstat span{font-size:12px;color:var(--ash)}
-.bars{margin-top:16px}
-.brow{display:grid;grid-template-columns:120px 1fr 40px;align-items:center;gap:10px;margin:7px 0;font-size:13.5px}
-.fill{height:20px;background:var(--ember);border-radius:2px;min-width:3px;display:block}
-.brow .n{text-align:right;color:var(--ash);font-weight:700}
-.guide{border:1px dashed var(--line);border-radius:4px;padding:14px 16px;margin-top:16px;font-size:13.5px;color:var(--ash)}
-.guide b{color:var(--ember-lt)}
-.admbar{display:flex;justify-content:flex-end;margin-top:10px}
-.admbtn{background:none;border:1px solid var(--line);color:var(--ash);font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:14px}
-.admbtn:hover{border-color:var(--paper);color:var(--paper)}
-.admbtn.on{background:var(--ember);border-color:var(--ember);color:#fff}
-.admonly{display:none}
-.adm .admonly{display:inline-flex}
-.wl li,.wl .wrow{list-style:none}
-.wrow{display:flex;align-items:flex-start;gap:8px}
-.wrow p{flex:1}
-.delx{flex:0 0 auto;background:none;border:1px solid var(--line);color:var(--ember-lt);font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px;margin-top:5px}
-.delx:hover{border-color:var(--ember-lt)}
-.tedit{background:none;border:1px solid var(--line);color:var(--ash);font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:14px}
-.tedit:hover{border-color:var(--paper);color:var(--paper)}
-.tedit.danger{color:var(--ember-lt)}
-.tedit.danger:hover{border-color:var(--ember-lt)}
-.editform{margin-top:14px;border-top:1px dashed var(--line);padding-top:14px}
-.editform .q{margin-top:10px}
-.editform .row{margin-top:6px}
+.emowrap{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-top:14px}
+.emow{font-family:var(--serif);font-weight:700;color:var(--smoke)}
+.emow b{color:var(--ember);font-family:var(--sans);font-size:12px;margin-left:4px}
+
+/* 1쪽 감상 활동지 */
+.afill{display:grid;gap:5px;margin-top:6px;font-size:12px}
+.afill span{line-height:2.1}
+.bl{display:inline-block;border-bottom:1.2px solid var(--ink);min-width:64px;margin:0 3px}
+.bl.s{min-width:30px}
+.astruct{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.sbox{position:relative;border:1.3px solid var(--ink);aspect-ratio:16/9;background:
+  repeating-linear-gradient(0deg,transparent,transparent 8mm,#f2f0ea 8mm,#f2f0ea calc(8mm + 1px)),
+  repeating-linear-gradient(90deg,transparent,transparent 8mm,#f2f0ea 8mm,#f2f0ea calc(8mm + 1px))}
+.sg{position:absolute;font-size:9px;color:var(--ash)}
+.sg.t{top:3px;left:50%;transform:translateX(-50%)}
+.sg.b{bottom:3px;left:50%;transform:translateX(-50%)}
+.schk{display:flex;flex-direction:column;gap:3px}
+.schk .aopt{font-size:11px}
+.asym{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}
+.asym th{background:var(--ink);color:#fff;padding:4px 7px;text-align:left;font-weight:700;font-size:10.5px}
+.asym td{border:1px solid #b5b2aa;padding:0 7px;height:8.4mm;vertical-align:middle}
+.asym td:first-child{font-weight:700;font-size:10.5px;background:#f4f3ee}
+.a4.pg2{margin-top:26px}
+
+/* ===== 활동지 ===== */
+.a4{background:#fff;border:1px solid var(--line);box-shadow:0 3px 14px rgba(0,0,0,.08);padding:11mm 12mm 9mm;max-width:820px;margin:16px auto 0;font-size:12.5px;line-height:1.5}
+.ahead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid var(--ink);padding-bottom:6px;flex-wrap:wrap;gap:8px}
+.aover{font-size:9.5px;letter-spacing:.2em;color:var(--ember);font-weight:700}
+.atitle{font-family:var(--serif);font-weight:900;font-size:23px;margin-top:2px}
+.aid{font-size:12px;font-weight:700;display:flex;gap:10px}
+.aid span{border-bottom:1.2px solid var(--ink);min-width:62px;display:inline-block;padding:0 3px 2px}
+.asec{display:grid;grid-template-columns:26px 1fr;gap:9px;border:1.3px solid var(--ink);border-radius:2px;padding:8px 11px;margin-top:7px}
+.asec.last{margin-bottom:2px}
+.anum{font-family:var(--serif);font-weight:900;font-size:17px;color:var(--ember);line-height:1.2}
+.alab{font-family:var(--serif);font-weight:700;font-size:13.5px}
+.alab small{font-family:var(--sans);font-weight:400;font-size:10px;color:var(--smoke);margin-left:5px}
+.alab2{font-size:11px;font-weight:700;margin-top:5px}
+.alab2 small{font-weight:400;color:var(--smoke);font-size:9.8px;margin-left:4px}
+.aline{border-bottom:1px solid #b5b2aa;height:7mm}
+.atwo{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.aopts{display:flex;flex-wrap:wrap;gap:4px 14px;margin:5px 0 2px}
+.aopt{font-size:11.5px;display:flex;align-items:center;gap:5px}
+.aopt em{font-style:normal;font-size:9.8px;color:var(--smoke)}
+.abx{width:11px;height:11px;border:1.3px solid var(--ink);display:inline-block;border-radius:2px;flex:0 0 auto}
+.asketch{position:relative;border:1.3px dashed var(--smoke);width:62mm;height:62mm;margin-top:6px;background:
+  repeating-linear-gradient(0deg,transparent,transparent 9mm,#f0eee8 9mm,#f0eee8 calc(9mm + 1px)),
+  repeating-linear-gradient(90deg,transparent,transparent 9mm,#f0eee8 9mm,#f0eee8 calc(9mm + 1px))}
+.edge{position:absolute;font-size:9px;color:var(--ash);letter-spacing:.05em}
+.edge.t{top:3px;left:50%;transform:translateX(-50%)}
+.edge.b{bottom:3px;left:50%;transform:translateX(-50%)}
+.edge.l{left:4px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left center}
+.edge.r{right:4px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center}
+.afoot{margin-top:7px;border-top:1px solid var(--line);padding-top:4px;font-size:9px;color:var(--smoke);display:flex;justify-content:space-between}
+
+/* 상징 만들기 */
+.roleschips{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.rchip{border:1.5px solid var(--line);background:var(--page);padding:9px 18px;font-size:14.5px;border-radius:22px;font-weight:500}
+.rchip.pick{color:#fff;border-color:transparent}
+.rchip.pick.r고통{background:var(--pain)}.rchip.pick.r방관{background:var(--bystand)}
+.rchip.pick.r저항{background:var(--resist)}.rchip.pick.r희망{background:var(--hope)}
+.hint{font-size:13px;color:var(--ash);margin-top:5px}
+.picked{font-size:13.5px;background:var(--paper);border-left:4px solid var(--ember);padding:9px 13px;margin-top:10px;color:var(--smoke)}
+
+/* 사전 */
+.dict{margin-top:12px;column-count:2;column-gap:28px}
+@media(max-width:760px){.dict{column-count:1}}
+.entry{break-inside:avoid;background:var(--page);border-top:3px solid var(--ink);padding:16px 4px 18px;margin-bottom:20px;position:relative}
+.entry .word{font-family:var(--serif);font-weight:900;font-size:24px;line-height:1.3}
+.entry .pos{display:inline-block;font-size:12px;font-weight:700;color:#fff;padding:2px 11px;border-radius:2px;margin:6px 0 8px}
+.entry .pos.r고통{background:var(--pain)}.entry .pos.r방관{background:var(--bystand)}
+.entry .pos.r저항{background:var(--resist)}.entry .pos.r희망{background:var(--hope)}
+.entry .mean{font-size:15px}
+.entry .src{margin-top:10px;font-size:13px;color:var(--smoke);border-left:3px solid var(--line);padding-left:10px}
+.entry .by{margin-top:7px;font-size:12px;color:var(--ash);letter-spacing:.06em}
+.entry .x{position:absolute;top:8px;right:2px;border:none;background:none;color:var(--ash);font-size:14px}
+.dictbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.filters button{background:none;border:1.5px solid var(--line);color:var(--smoke);font-size:13px;font-weight:700;padding:6px 14px;border-radius:16px}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.count{font-size:13.5px;color:var(--smoke);margin-left:auto}
+
+/* 제작 순서 */
+.steps{counter-reset:s}
+.step{background:var(--page);border:1.5px solid var(--line);border-radius:3px;padding:14px 16px 14px 52px;margin-top:10px;position:relative}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:26px;height:26px;line-height:26px;text-align:center;background:var(--ink);color:var(--paper);border-radius:50%;font-weight:700;font-size:13px}
+.step b{font-family:var(--serif);font-size:15.5px}
+.step p{font-size:13.5px;color:var(--smoke);margin-top:3px}
 </style>
 </head>
 <body>
 
 <script>
-/* ★ 이 2줄만 실제 값으로 ★ */
+/* ★ 이 2줄만 실제 값으로 (index.html과 동일) ★ */
 const SB_URL  = 'https://xdajkxwszdraibozurih.supabase.co';
 const SB_ANON = 'sb_publishable_eonAHNJmziBkTVlG1QVU5w_fZgSsD0M';
-const CATS=['학교 안에서','온라인에서','가정·이웃에서','세계에서'];
-const TEAMS=['1모둠','2모둠','3모둠','4모둠','5모둠','6모둠'];
-/* ★ 우리 학교 학년·반 구성 — 학년/반 수가 바뀌면 이 배열만 고치세요 ★ */
-const GRADES=[{g:1,n:5},{g:2,n:4}]; // {학년, 반 개수}
-const CLASSES=GRADES.flatMap(({g,n})=>Array.from({length:n},(_,i)=>{
-  const c=String(i+1).padStart(2,'0');
-  return {v:`${g}${c}`,l:`${g}학년 ${i+1}반`,g};
-}));
-/* ★ 결과보기 관리자 모드 비밀번호 — 필요하면 이 값만 바꾸세요 ★ */
-const ADMIN_PW='teacher2026';
+
+const CATS=['학교폭력·따돌림','혐오표현·조리돌림','차별·비하','관계 단절','온라인'];
+/* 구글 시트 제출 연동 — Apps Script 웹앱을 배포한 뒤 그 URL을 아래에 붙여넣으세요 (설정 전에는 "제출하기"가 안내만 표시합니다) */
+const SHEET_WEBHOOK_URL = '';
+const GUERNICA=[
+ ['황소','어둠 속에서 홀로 빛을 받는 얼굴. 스페인 투우를 상징할까, 폭력 그 자체를 상징할까 — 피카소는 끝내 뜻을 밝히지 않았다.','b'],
+ ['쓰러진 말','고통스럽게 울부짖으며 몸통이 갈라졌다. 짓밟힌 이들의 고통을 대신해 화면 한가운데서 가장 크게 운다.','p'],
+ ['단검 모양의 혀','황소·말·우는 여인, 세 곳의 입에 숨겨진 단검 모양의 혀. 소리가 들리지 않는 캔버스에서 비명과 고통을 날카로운 칼처럼 시각화했다.','p'],
+ ['전구(눈)','폭격을 내려다보는 차가운 시선. 보고 있으면서 막지 않는 눈.','b'],
+ ['죽은 아기를 안고 우는 여인','말이 필요 없는 상실. 고개를 젖힌 채 하늘을 향해 운다.','p'],
+ ['뒤뚱거리며 달아나는 여인','황급히 도망치는 뒤틀린 걸음.','b'],
+ ['램프를 든 여인','당황한 표정으로 창밖을 보며 램프를 내민다. 어둠 속 진실을 비추고자 하는 빛.','h'],
+ ['불길 속 비명 지르는 여인','두 팔을 들고 절규한다. 불타는 집 안에 갇혔다.','p'],
+ ['부러진 칼과 꽃','산산조각 난 병사의 부러진 칼, 그 옆에 조용히 피어난 꽃 한 송이. 절망의 바닥에서 피어난 희망.','r']
+];
 </script>
 
-<!-- 게이트 -->
-<div class="gate" id="gate">
-  <div class="tag">도덕x미술수업</div>
-  <h1>우리 안의 게르니카</h1>
-  <p class="sub">보이지 않는 전쟁을 목격하다</p>
-  <div class="roles">
-    <button class="rolebtn" onclick="go('student')">개인 기록<small>내가 목격한 장면 — 1쪽</small></button>
-    <button class="rolebtn" onclick="go('public')">우리의 기록<small>목격 기록 모아보기 · 통계신문 준비 (이름 비공개)</small></button>
-    <button class="rolebtn" onclick="go('gallery')">데이터 모아보기<small>모둠이 만든 통계신문 자료 (이름 비공개)</small></button>
-    <button class="rolebtn" onclick="go('admin')">관리자 보기<small>교사 전용 · 반별 상세 · 삭제·수정</small></button>
-  </div>
+<div class="wrap">
+
+<div class="masthead">
+  <div class="over">미술 · 감상과 표현</div>
+  <h1>게르니카 작업실</h1>
+  <div class="under">도덕 시간의 기록이 그림의 언어가 되는 곳</div>
 </div>
 
-<!-- 개인 -->
-<div class="wrap hide" id="student">
-  <button class="btn ghost" onclick="backToGate()" style="margin-bottom:14px">← 처음으로</button>
-  <div class="tag">개인 기록 · 학습지 1쪽</div>
-  <h1>내가 목격한 작은 전쟁</h1>
-  <p class="sub">이름은 선생님(관리자)만 볼 수 있어요. 다른 친구들에게는 내용만 익명으로 공개됩니다.</p>
-  <div class="wsec" style="border-left-color:var(--line)">
-    <div class="q">우리 반 / 우리 모둠 / 이름</div>
-    <div class="row">
-      <select id="sClass"></select>
-      <select id="sTeam"></select>
-      <input type="text" id="sNick" placeholder="이름">
-    </div>
-  </div>
-  <div class="wsec">
-    <h3>전쟁의 두 얼굴</h3>
-    <div class="q">보이는 전쟁이란? <small>과거부터 오늘날까지 내가 알고 있는 전쟁을 써 보세요</small></div>
-    <input type="text" id="sVis" placeholder="예: 6·25 전쟁, 우크라이나 전쟁...">
-    <div class="q">보이지 않는 전쟁이란? <small>내가 생각하는 보이지 않는 전쟁은 무엇인가요</small></div>
-    <input type="text" id="sInv" placeholder="내 생각을 자유롭게 써 보세요">
-  </div>
-  <div class="wsec">
-    <h3>내가 목격한 장면</h3>
-    <div class="chips" id="sCats"></div>
-    <div class="q">그 장면을 한 문장으로 <small>이름 없이, 상황만</small></div>
-    <textarea id="sWit" rows="2" placeholder="예: 급식실에서 늘 혼자 앉는 아이 옆을 모두가 그냥 지나쳤다"></textarea>
-    <div class="q">그 장면을 보고 느낀 점은? <small>그때 든 생각이나 감정</small></div>
-    <textarea id="sFeel" rows="2" placeholder="예: 나도 방관자였던 것 같아 마음이 무거웠다"></textarea>
-  </div>
-  <div class="bar"><button class="btn" id="sBtn" style="width:100%" onclick="submitStudent()">기록 제출하기</button></div>
-  <div class="done hide" id="sDone"><b>제출 완료</b>
-    <p class="small" style="margin-top:8px">우리 모둠 칸에 기록되었습니다.</p>
-    <div class="row" style="justify-content:center">
-      <button class="btn ghost" onclick="editLastSubmission()">내가 쓴 내용 수정하기</button>
-      <button class="btn ghost" onclick="location.reload()">처음으로</button>
-    </div>
-  </div>
-</div>
-
-<!-- 데이터 모아보기 (전체 공개, 이름 비공개) -->
-<div class="wrap hide" id="public">
-  <button class="btn ghost" onclick="backToGate()" style="margin-bottom:14px">← 처음으로</button>
-  <div class="tag">우리의 기록 · 실시간 · 이름 비공개</div>
-  <h1>우리가 목격한 장면들</h1>
-  <p class="sub">이름과 반·모둠은 표시되지 않습니다. 통계신문(인포그래픽) 만들 때 참고하세요. 담은 자료와 완성한 모둠 기록은 "데이터 모아보기"에서 볼 수 있어요.</p>
-  <div class="tabs" id="pubTabs">
-    <button class="on" data-t="pubOnline">온라인에서</button>
-    <button data-t="pubSchool">학교에서</button>
-    <button data-t="pubEtc">기타(가정·이웃·세계)</button>
-    <button data-t="pubTeamOpinion">모둠의견 작성</button>
-    <button data-t="pubPrompt">통계신문 만들기</button>
-  </div>
-  <div class="sec on" id="pubOnline"></div>
-  <div class="sec" id="pubSchool"></div>
-  <div class="sec" id="pubEtc"></div>
-  <div class="sec" id="pubTeamOpinion">
-    <div class="wsec" style="border-left-color:var(--line)">
-      <h3>모둠의견 작성</h3>
-      <p class="small">① 위 "온라인에서·학교에서·기타" 탭에서 자료를 "담기"로 모으세요(담은 자료는 "데이터 모아보기"에서도 볼 수 있어요). ② 아래 "담은 자료 불러오기"를 눌러 가져온 뒤, 함께 분석·토의한 내용을 정리하세요. ③ 저장하면 "통계신문 만들기" 탭과 "데이터 모아보기"의 모둠별 기록에 자동으로 반영됩니다. 모둠원 누구나 이어서 수정할 수 있어요.</p>
-    </div>
-    <div class="wsec">
-      <div class="q">우리 반 / 우리 모둠</div>
-      <div class="row">
-        <select id="toClass"></select>
-        <select id="toTeam"></select>
-      </div>
-      <div class="q">신문 제목</div>
-      <input type="text" id="toTitle" placeholder="예: 우리 안의 게르니카">
-      <div class="q">부제</div>
-      <input type="text" id="toSubtitle" placeholder="예: 보이지 않는 전쟁">
-      <div class="q">전체 색상 콘셉트</div>
-      <input type="text" id="toColor" placeholder="예: 다크 그레이, 슬레이트 블루, 연회색">
-      <div class="q">우리가 고른 인상 깊은 데이터 <small>내가 직접 목격한 것이 아니어도 좋아요</small></div>
-      <button type="button" class="btn ghost" onclick="importPickedItems()" style="margin-bottom:8px">📥 담은 자료 불러오기</button>
-      <textarea id="toPicked" rows="3" placeholder="예: 온라인에서 악성 댓글을 봤지만 아무도 신고하지 않았다는 기록이 가장 많았다"></textarea>
-      <div class="q">그 데이터를 보고 느낀 점</div>
-      <textarea id="toFeel" rows="2" placeholder="예: 다들 방관하고 있다는 게 놀라웠고, 나도 그런 적이 있었는지 돌아보게 되었다"></textarea>
-      <div class="q">모둠 토의 내용과 결론 <small>실천할 수 있는 것까지 정리해보세요</small></div>
-      <textarea id="toDiscuss" rows="3" placeholder="예: 우리는 왜 사람들이 방관하는지 이야기했고, 결론적으로 '먼저 말 걸어주기'를 실천하자고 정했다"></textarea>
-      <div class="q">표어·명언 (카드뉴스 3개) <small>비워두면 위 데이터를 참고해 자동으로 만들어줘요</small></div>
-      <input type="text" id="toQ1" placeholder="인용문 ①">
-      <input type="text" id="toQ2" placeholder="인용문 ②" style="margin-top:10px">
-      <input type="text" id="toQ3" placeholder="인용문 ③" style="margin-top:10px">
-      <div class="row" style="margin-top:14px">
-        <button type="button" class="btn" onclick="saveTeamOpinion()">저장하기</button>
-      </div>
-      <p class="small" id="toStatus" style="margin-top:8px"></p>
-    </div>
-  </div>
-  <div class="sec" id="pubPrompt">
-    <div class="wsec" style="border-left-color:var(--line)">
-      <h3>통계신문(인포그래픽) 만들기</h3>
-      <p class="small">"모둠의견 작성" 탭에서 반·모둠을 고르고 내용을 저장해두면, 이 탭을 열 때마다 그 내용과 실제 통계로 프롬프트가 자동으로 만들어집니다. 바로 ChatGPT나 Gemini를 열어 이미지를 만드세요.</p>
-    </div>
-    <div class="wsec">
-      <div class="q">현재 선택된 모둠</div>
-      <p class="small" id="ppTeamInfo" style="margin-top:2px"></p>
-      <div class="row" style="margin-top:14px">
-        <button type="button" class="btn ghost" onclick="fillPromptData()">프롬프트 다시 만들기</button>
-        <button type="button" class="btn ghost" onclick="copyPrompt()">프롬프트 복사하기</button>
-      </div>
-      <div class="row">
-        <button type="button" class="btn" onclick="openChatGPT()">ChatGPT에서 열기</button>
-        <button type="button" class="btn" onclick="openGemini()">Gemini에서 열기</button>
-      </div>
-      <p class="small" style="margin-top:8px">ChatGPT는 프롬프트가 자동으로 입력창에 채워집니다(전송 버튼은 직접 눌러주세요). Gemini는 자동 입력을 지원하지 않아 프롬프트를 클립보드에 복사한 뒤 Gemini를 열어드리니, 입력창에 붙여넣기(Ctrl/Cmd+V) 해주세요.</p>
-      <textarea id="pubPromptBox" rows="18" style="margin-top:12px;font-size:13.5px"></textarea>
-    </div>
-    <div class="wsec" style="border-left-color:#3f7d4e">
-      <h3>완성한 통계신문 제출하기</h3>
-      <p class="small">만든 이미지를 저장한 뒤, 아래 패들렛에 우리 모둠 이름과 함께 올려주세요. 이게 최종 제출 장소입니다.</p>
-      <div class="row" style="margin-top:10px">
-        <a class="btn" href="https://padlet.com/teddyhj/padlet-s0235tcqql2uyykyxrir" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:inline-block">패들렛 열어서 제출하기</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 데이터 모아보기 (전체 공개, 모둠 결과 · 개인 기록 제외, 이름 비공개) -->
-<div class="wrap hide" id="gallery">
-  <button class="btn ghost" onclick="backToGate()" style="margin-bottom:14px">← 처음으로</button>
-  <div class="tag">데이터 모아보기 · 실시간 · 이름 비공개</div>
-  <h1>모둠이 만든 통계신문 자료</h1>
-  <p class="sub">개인이 쓴 목격 기록은 여기 없습니다 — 각 모둠이 정리한 결과와 담은 자료만 모아봅니다.</p>
-  <div class="tabs" id="galTabs">
-    <button class="on" data-t="galTeams">모둠별 기록</button>
-    <button data-t="galStat">인포그래픽 자료</button>
-  </div>
-  <div class="sec on" id="galTeams"></div>
-  <div class="sec" id="galStat">
-    <p class="sub">인포그래픽에 넣을 숫자입니다. 그대로 옮겨 적으세요.</p>
-    <div id="galStatWrap"></div>
-  </div>
-</div>
-
-<!-- 관리자 보기 (교사 전용, 비밀번호 확인 후에만 진입) -->
-<div class="wrap hide" id="result">
-  <div class="tag">관리자 보기 · 교사 전용 · 실시간</div>
-  <h1>학급 결과</h1>
-  <div class="admbar"><button class="admbtn" onclick="exitAdmin()">← 처음으로</button></div>
-  <div class="filters" id="classBar"></div>
+<!-- 본문 -->
+<div id="app">
   <div class="tabs">
-    <button class="on" data-t="rByClass">반별 기록(실명)</button>
-    <button data-t="rTeams">모둠별 기록</button>
-    <button data-t="rStat">인포그래픽 자료</button>
+    <button class="on" data-t="tRead">1. 우리 기록 읽기</button>
+    <button data-t="tSee">2. 게르니카 감상</button>
+    <button data-t="tSym">3. 상징 만들기</button>
+    <button data-t="tPlan">4. 작품 구상 계획</button>
+    <button data-t="tSubmit">5. 제출하기</button>
   </div>
-  <div class="sec on" id="rByClass">
-    <div id="byClassWrap"></div>
+
+  <!-- 1. 도덕 기록 -->
+  <div class="sec on" id="tRead">
+    <h2>우리가 목격한 것들</h2>
+    <p class="lead">도덕 시간에 우리가 남긴 기록입니다. 하나씩 다시 읽으며 "우리의 전쟁"이 무엇인지 찾아봅니다.</p>
+    <h3>가장 많이 선택된 목격 데이터</h3>
+    <p class="small">친구들이 "상징 만들기"에서 가장 많이 골라 쓴 장면입니다.</p>
+    <div id="topPicks"></div>
+    <h3>목격 데이터 메시지 모음 <span class="small" style="font-weight:400">— 많이 나온 순</span></h3>
+    <p class="small">비슷한 기록끼리 모아서 보여줍니다. 마음에 드는 장면은 <b>담기</b>를 눌러 두면 "상징 만들기"에서 이어서 쓸 수 있습니다.</p>
+    <div id="msgList"></div>
   </div>
-  <div class="sec" id="rTeams">
-    <div id="teamWrap"></div>
+
+  <!-- 2. 감상 -->
+  <div class="sec" id="tSee">
+    <div class="substeps" id="subNav"></div>
+
+    <!-- 2-1 만나기 -->
+    <div class="sub on" id="see1">
+      <h2>작품 만나기</h2>
+      <p class="lead">먼저 사실부터. 이 그림은 상상이 아니라 <b>실제로 일어난 일</b>을 그린 것입니다. 문장을 읽고 빈칸을 눌러 답을 확인하세요.</p>
+
+      <h3>게르니카가 일어난 배경</h3>
+      <div class="symref">
+        <div class="sref" onclick="this.classList.add('open')"><b>1937년 4월 26일, 스페인 바스크 지방의 마을 ___</b><span class="ask">눌러서 확인 →</span><span class="rev">게르니카. 스페인 내전 중, 프랑코 장군을 지원한 나치 독일 공군이 신무기 실험을 위해 평화로운 마을을 무차별 폭격했다.</span></div>
+        <div class="sref" onclick="this.classList.add('open')"><b>이날 투하된 폭탄은 약 ___</b><span class="ask">눌러서 확인 →</span><span class="rev">24톤 — 승용차 16대 무게. 희생된 민간인은 약 1,600명 이상이었다.</span></div>
+      </div>
+
+      <h3>작품 설명</h3>
+      <div class="symref">
+        <div class="sref" onclick="this.classList.add('open')"><b>그림의 크기는 ___</b><span class="ask">눌러서 확인 →</span><span class="rev">가로 7.8m × 세로 3.5m — 학생 평균 키(약 1.6m)의 두 배가 넘는 거대한 캔버스다.</span></div>
+        <div class="sref" onclick="this.classList.add('open')"><b>이 그림에는 ___이 없다</b><span class="ask">눌러서 확인 →</span><span class="rev">색(빨강·주황). 검정·흰색·회색만 사용했다 — 신문 기사처럼 건조하고 객관적으로 진실을 고발하면서, 피(빨강)와 불(주황)의 색을 의도적으로 빼 역설적으로 죽음과 절망을 더 강렬하게 전달한다.</span></div>
+        <div class="sref" onclick="this.classList.add('open')"><b>완성 후 그림이 고향 스페인에 돌아오기까지 ___ 걸렸다</b><span class="ask">눌러서 확인 →</span><span class="rev">40년 넘게. 1937년 파리에서 처음 공개돼 폭격 사실을 세계에 알렸고, 독재자 프랑코가 있는 스페인에는 보낼 수 없어 1939년부터 뉴욕 MoMA에 있다가, 1981년 프라도 미술관을 거쳐 1992년 레이나 소피아 미술관에 최종 안착했다.</span></div>
+      </div>
+
+      <h3>피카소의 생각 — 왜 전쟁화, 사회참여 메시지를 그렸을까</h3>
+      <div class="symref">
+        <div class="sref" onclick="this.classList.add('open')"><b>이 그림은 원래 ___(이)었다</b><span class="ask">눌러서 확인 →</span><span class="rev">파리 만국박람회 스페인관에 걸 평범한 전시회용 작품. 처음엔 특별한 주제 없이 구상 중이었다.</span></div>
+        <div class="sref" onclick="this.classList.add('open')"><b>5월 1일, 피카소는 ___</b><span class="ask">눌러서 확인 →</span><span class="rev">신문으로 게르니카 학살 소식을 접했다. 그 직후 주제를 전면 수정하기로 결단했다.</span></div>
+        <div class="sref" onclick="this.classList.add('open')"><b>피카소는 "예술은 ___"라고 믿었다</b><span class="ask">눌러서 확인 →</span><span class="rev">적과 싸우는 무기. 폭격 소식을 들은 피카소는 단 5주 만에 거대한 고발장을 완성했다.</span></div>
+      </div>
+      <div class="note strong">신문 기사처럼 사실을 알리되, 흑백만으로 비극을 극대화하고, 예술을 무기 삼아 세상에 고발한다 — 이것이 피카소가 전쟁화를 그린 이유다.</div>
+    </div>
+
+    <!-- 2-2 상징 읽기 -->
+    <div class="sub" id="see2">
+      <h2>상징 읽기</h2>
+      <p class="lead">피카소는 "이건 무슨 뜻이다"라고 설명하지 않았습니다. 카드를 눌러 각 상징이 무엇을 뜻하는지 확인해 보세요.</p>
+      <div class="symref" id="symRef"></div>
+      <div class="qbox">
+        <p>왜 사람이 아니라 동물과 사물로 고통을 말했을까?</p>
+        <p>피카소는 황소의 뜻을 끝내 밝히지 않았다. 여러분은 무엇이라고 보나요?</p>
+        <p>그림 속에는 세 마리의 동물이 숨어 있습니다. 황소와 말 말고, 나머지 한 마리는 어디에 있을까요?</p>
+      </div>
+    </div>
+
+    <!-- 2-3 우리 시대 -->
+    <div class="sub" id="see3">
+      <h2>우리 시대의 게르니카</h2>
+      <p class="lead">1937년 게르니카에는 폭탄이 떨어졌습니다. 그런데 도덕 시간에 적어낸 기록을 보면 —</p>
+      <div class="cmp">
+        <div class="cbox old"><b>1937 · 게르니카</b>
+          <ul><li>폭탄이 떨어진다</li><li>마을이 무너진다</li><li>신문에 실린다</li><li>멀리 있는 일처럼 느껴진다</li></ul></div>
+        <div class="carrow">→</div>
+        <div class="cbox now"><b>지금 · 우리 곁</b>
+          <ul><li>말과 시선이 겨눈다</li><li>한 사람의 세계가 무너진다</li><li>아무 데도 실리지 않는다</li><li>바로 여기, 오늘 있었던 일이다</li></ul></div>
+      </div>
+      <h3>우리가 목격한 전쟁 <span class="small" style="font-weight:400">— 도덕 시간 기록 집계</span></h3>
+      <div id="classStat"></div>
+      <div class="qbox">
+        <p>왜 이 일들은 뉴스에 나오지 않을까?</p>
+        <p>기록이 이만큼 모였다는 것은 무엇을 뜻할까?</p>
+        <p>피카소는 폭격을 그려 세상에 알렸다. 우리는 무엇을 그려서 알릴 수 있을까?</p>
+      </div>
+      <div class="note strong">이제 우리 차례입니다. 다음 탭에서 <b>나의 상징</b>을 만듭니다.</div>
+    </div>
   </div>
-  <div class="sec" id="rStat">
-    <p class="sub">인포그래픽에 넣을 숫자입니다. 그대로 옮겨 적으세요.</p>
-    <div id="statWrap"></div>
+
+  <!-- 3. 상징 만들기 + 제작 계획(개인작업) -->
+  <div class="sec" id="tSym">
+    <h2>상징 만들기</h2>
+    <p class="lead">목격 장면 하나를 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+    <div class="wsgrid" id="symSrc"></div>
+    <div class="card strong">
+      <div class="picked" id="picked">↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (없이도 만들 수 있어요)</div>
+      <label class="small">상징 이름 — 사물·형상으로</label>
+      <input type="text" id="sName" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
+      <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
+      <textarea id="sMean" rows="3" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
+      <div class="row"><button class="btn" onclick="addSymbol()">사전에 등재하기</button></div>
+    </div>
+    <h3>우리 상징 사전</h3>
+    <div class="dictbar">
+      <span class="count" id="dCount"></span>
+    </div>
+    <div class="dict" id="dict"></div>
   </div>
+
+  <!-- 4. 작품 구상 계획 -->
+  <div class="sec" id="tPlan">
+    <h2>작품 구상 계획</h2>
+    <p class="lead">모둠 작품이 아닌 <b>개인별 부분 작품</b>을 만들고, 완성한 작품을 모아 <b>전체 작품</b>으로 전시합니다.</p>
+    <div class="card strong">
+      <b style="font-family:var(--serif);font-size:15.5px;color:var(--ember)">1. 표현하고 싶은 것</b>
+      <p class="small" style="margin-top:6px">위에서 고른 목격 장면과 내가 만든 상징을 바탕으로, 무엇을 그릴지 정합니다 — 인물의 일부, 상황, 또는 상징 하나.</p>
+    </div>
+    <div class="card strong" style="margin-top:10px">
+      <b style="font-family:var(--serif);font-size:15.5px;color:var(--ember)">2. 어떤 식으로 표현하고 싶은지</b>
+      <div class="anal" style="margin-top:10px">
+        <div class="a"><b>표현 의도</b><span>고통을 표현하고 싶은지, 방관을 표현하고 싶은지, 저항을 표현하고 싶은지, 희망을 표현하고 싶은지 정합니다.</span></div>
+        <div class="a"><b>스타일</b><span>피카소의 게르니카처럼 <b>입체파(큐비즘)</b> 스타일로 — 형태를 단순화하고 겹쳐서 표현합니다.</span></div>
+        <div class="a"><b>형태</b><span><b>입체</b> 작품 또는 <b>평면</b> 작품 중 하나를 고릅니다.</span></div>
+        <div class="a"><b>입체로 만든다면</b><span><b>책상 위에 세우기</b> 또는 <b>배경 벽(우드락판)에 붙이기</b> 중 정합니다.</span></div>
+        <div class="a"><b>재료와 방법</b><span>그리기·채색 / 하드보드나 검정 도화지를 오려 붙이기(콜라주) / 점토로 입체 형상 만들기 중 골라 사용합니다.</span></div>
+        <div class="a"><b>색</b><span>피카소처럼 흑백과 회색만으로 표현하되, 딱 한 곳에만 포인트 색을 쓸 수 있다면 어디에 어떤 색을 쓰고 싶은지, 그 이유도 함께 정합니다.</span></div>
+      </div>
+    </div>
+
+    <h3>제작 순서</h3>
+    <div class="steps">
+      <div class="step"><b>표현하고 싶은 것 정하기</b><p>고른 목격 장면과 상징을 바탕으로 무엇을 그릴지 정합니다 — 인물의 일부, 상황, 또는 상징 하나.</p></div>
+      <div class="step"><b>표현 방식 정하기</b><p>입체로 만들지 평면으로 만들지, 어떤 재료로 만들지 정합니다.</p></div>
+      <div class="step"><b>구상 스케치</b><p>도화지(또는 하드보드) 가장자리까지 형태가 나가도록 크게 그립니다. 여백을 많이 남기지 않습니다.</p></div>
+      <div class="step"><b>제작하기</b><p>그리기·채색, 도화지 콜라주, 점토 성형 중 정한 방법으로 만듭니다.</p></div>
+      <div class="step"><b>함께 전시하기</b><p>완성한 작품을 모아 책상 위에 세운 입체 작품과 우드락판 배경에 붙인 평면 작품으로, 하나의 전체 작품처럼 전시합니다.</p></div>
+      <div class="step"><b>작품 설명 적기</b><p>제목, 고른 목격 장면, 상징의 이름과 뜻을 적어 작품과 함께 전시합니다.</p></div>
+    </div>
+  </div>
+
+  <!-- 5. 제출하기 -->
+  <div class="sec" id="tSubmit">
+    <h2>제출하기</h2>
+    <p class="lead">학번과 이름을 적고, 오늘 고른 장면과 만든 상징, 표현 계획을 선생님께 제출합니다.</p>
+    <div class="card strong">
+      <label class="small">학번</label>
+      <input type="text" id="subNum" placeholder="예: 10203" inputmode="numeric">
+      <label class="small" style="display:block;margin-top:14px">이름</label>
+      <input type="text" id="subName" placeholder="이름을 입력하세요">
+      <label class="small" style="display:block;margin-top:14px">선택한 목격 장면</label>
+      <div class="picked" id="subScene">↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다</div>
+      <label class="small" style="display:block;margin-top:14px">내가 만든 상징 — 이름</label>
+      <input type="text" id="subSymName" placeholder="예: 닫힌 문">
+      <label class="small" style="display:block;margin-top:14px">내가 만든 상징 — 뜻풀이</label>
+      <textarea id="subSymMean" rows="3" placeholder="이 상징은 무엇을 대신하나요?"></textarea>
+      <label class="small" style="display:block;margin-top:14px">표현 의도</label>
+      <select id="subIntent">
+        <option value="">선택 안 함</option>
+        <option value="고통">고통</option>
+        <option value="방관">방관</option>
+        <option value="저항">저항</option>
+        <option value="희망">희망</option>
+      </select>
+      <label class="small" style="display:block;margin-top:14px">표현 방식 — 형태·재료 등</label>
+      <textarea id="subStyle" rows="2" placeholder="예: 평면 / 검정 도화지 콜라주 / 한 곳에만 빨강 포인트"></textarea>
+      <div class="row"><button class="btn" onclick="submitFinal()">제출하기</button></div>
+      <p class="small" style="margin-top:10px">제출한 내용은 선생님이 확인하는 구글 시트에 기록됩니다.</p>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -300,454 +404,149 @@ const sb=supabase.createClient(SB_URL,SB_ANON);
 const $=id=>document.getElementById(id);
 const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900);}
-let ws=[],tm=[],selClass='전체',pickedCat=null;
-let isAdmin=false,editingKey=null,editTopic=null,editingWitness=null;
-let lastSubmittedId=null;
-const params=new URLSearchParams(location.search);
+let ws=[],syms=[],groups=[],pickedWs=null;
 
-['sTeam','toTeam'].forEach(id=>$(id).innerHTML='<option value="">모둠 선택</option>'+TEAMS.map(t=>`<option>${t}</option>`).join(''));
-['sClass','toClass'].forEach(id=>$(id).innerHTML='<option value="">반 선택</option>'+GRADES.map(({g})=>
-  `<optgroup label="${g}학년">${CLASSES.filter(c=>c.g===g).map(c=>`<option value="${c.v}">${c.l}</option>`).join('')}</optgroup>`).join(''));
-if(params.get('class')){$('sClass').value=params.get('class');selClass=params.get('class');}
-$('toClass').onchange=loadTeamOpinion;
-$('toTeam').onchange=loadTeamOpinion;
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  b.classList.add('on');$(b.dataset.t).classList.add('on');window.scrollTo({top:0,behavior:'smooth'});
+});
+$('symRef').innerHTML=GUERNICA.map((g,i)=>`<div class="sref ${g[2]}" onclick="this.classList.add('open')"><b>${g[0]}</b><span class="ask">먼저 생각해 보고 클릭 →</span><span class="rev">${g[1]}</span></div>`).join('');
+/* 감상 서브탭 */
+const SUBS=['① 작품 만나기','② 상징 읽기','③ 우리 시대의 게르니카'];
+$('subNav').innerHTML=SUBS.map((s,i)=>`<button class="${i===0?'on':''}" onclick="subGo(${i+1},this)">${s}</button>`).join('');
+load();
+sb.channel('art-global')
+  .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
+  .on('postgres_changes',{event:'*',schema:'public',table:'worksheets'},load)
+  .subscribe();
 
-function go(mode){
-  if(mode==='admin'){enterAdmin();return;}
-  $('gate').classList.add('hide');
-  if(mode==='student'){
-    $('student').classList.remove('hide');
-    CATS.forEach((c,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=c;
-      b.onclick=()=>{document.querySelectorAll('#sCats .chip').forEach(x=>x.classList.remove('pick'));b.classList.add('pick');pickedCat=i;};
-      $('sCats').appendChild(b);});
-  }
-  else if(mode==='public'){$('public').classList.remove('hide');initDataViews();}
-  else if(mode==='gallery'){$('gallery').classList.remove('hide');initDataViews();}
+async function load(){
+  const[w,s]=await Promise.all([
+    sb.from('worksheets').select('*').order('created_at'),
+    sb.from('art_symbols').select('*').order('created_at',{ascending:false})
+  ]);
+  ws=w.data||[];syms=s.data||[];
+  groups=groupedWs();
+  renderRead();renderSymSrc();renderDict();renderClassStat();refreshSubScene();
 }
-function backToGate(){
-  document.querySelectorAll('.wrap').forEach(w=>w.classList.add('hide'));
-  $('gate').classList.remove('hide');
+function groupedWs(){
+  const map=new Map();
+  ws.forEach(r=>{
+    const key=(r.witness||'').trim();
+    if(!key)return;
+    if(!map.has(key))map.set(key,{text:key,category:r.category||0,count:0,emotions:new Set()});
+    const g=map.get(key);g.count++;
+    (r.emotions||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(e=>g.emotions.add(e));
+  });
+  return[...map.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
 }
-
-/* 개인 */
-async function submitStudent(){
-  const c=$('sClass').value.trim(),t=$('sTeam').value;
-  if(!c){toast('반을 선택하세요');return;}
-  if(!t){toast('모둠을 골라주세요');return;}
-  if(!$('sNick').value.trim()){toast('이름을 써주세요');return;}
-  if(!$('sWit').value.trim()){toast('목격한 장면을 써주세요');return;}
-  $('sBtn').disabled=true;
-  const{data,error}=await sb.from('worksheets').insert({
-    class_code:c,team:t,nickname:$('sNick').value.trim()||null,
-    category:pickedCat===null?0:pickedCat,witness:$('sWit').value.trim(),
-    emotions:$('sFeel').value.trim()||null,
-    s1_common:$('sVis').value.trim(),s2_define:$('sInv').value.trim()}).select();
-  if(error){toast('제출 실패 — 다시 시도해 주세요');$('sBtn').disabled=false;return;}
-  lastSubmittedId=data&&data[0]?data[0].id:null;
-  $('student').querySelectorAll('.wsec,.bar').forEach(x=>x.classList.add('hide'));
-  $('sDone').classList.remove('hide');window.scrollTo({top:0,behavior:'smooth'});
-  $('sBtn').disabled=false;
-  $('sBtn').textContent='기록 제출하기';
-  $('sBtn').onclick=submitStudent;
-}
-function editLastSubmission(){
-  if(!lastSubmittedId){toast('수정할 기록을 찾을 수 없습니다');return;}
-  $('sDone').classList.add('hide');
-  $('student').querySelectorAll('.wsec,.bar').forEach(x=>x.classList.remove('hide'));
-  $('sBtn').textContent='수정 저장하기';
-  $('sBtn').onclick=saveEditStudent;
+function subGo(n,btn){
+  document.querySelectorAll('.substeps button').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.sub').forEach(s=>s.classList.remove('on'));
+  $('see'+n).classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
 }
-async function saveEditStudent(){
-  if(!$('sNick').value.trim()){toast('이름을 써주세요');return;}
-  if(!$('sWit').value.trim()){toast('목격한 장면을 써주세요');return;}
-  $('sBtn').disabled=true;
-  const{error}=await sb.from('worksheets').update({
-    nickname:$('sNick').value.trim()||null,
-    category:pickedCat===null?0:pickedCat,witness:$('sWit').value.trim(),
-    emotions:$('sFeel').value.trim()||null,
-    s1_common:$('sVis').value.trim(),s2_define:$('sInv').value.trim()}).eq('id',lastSubmittedId);
-  $('sBtn').disabled=false;
-  if(error){toast('수정 실패 — 다시 시도해 주세요');return;}
-  $('student').querySelectorAll('.wsec,.bar').forEach(x=>x.classList.add('hide'));
-  $('sDone').classList.remove('hide');
-  toast('수정되었습니다');window.scrollTo({top:0,behavior:'smooth'});
-}
-
-/* 관리자 보기 */
-function enterAdmin(){
-  const pw=prompt('관리자 비밀번호를 입력하세요');
-  if(pw===null)return;
-  if(pw!==ADMIN_PW){toast('비밀번호가 틀렸습니다');return;}
-  isAdmin=true;
-  $('gate').classList.add('hide');
-  $('public').classList.add('hide');
-  $('result').classList.remove('hide');
-  initResult();
-}
-function exitAdmin(){
-  isAdmin=false;editingKey=null;editTopic=null;editingWitness=null;
-  backToGate();
-}
-function initResult(){
-  if(params.get('class'))selClass=params.get('class');
-  document.querySelectorAll('#result .tabs button').forEach(b=>b.onclick=()=>{
-    document.querySelectorAll('#result .tabs button').forEach(x=>x.classList.remove('on'));
-    document.querySelectorAll('#result .sec').forEach(s=>s.classList.remove('on'));
-    b.classList.add('on');$(b.dataset.t).classList.add('on');});
-  load();
-  sb.channel('all')
-    .on('postgres_changes',{event:'*',schema:'public',table:'worksheets'},load)
-    .on('postgres_changes',{event:'*',schema:'public',table:'moral_teams'},load).subscribe();
-}
-async function deleteWitness(id){
-  if(!confirm('이 목격 기록을 삭제할까요? 되돌릴 수 없습니다.'))return;
-  const{error}=await sb.from('worksheets').delete().eq('id',id);
-  if(error){toast('삭제 실패 — 다시 시도해 주세요');return;}
-  toast('삭제되었습니다');load();
-}
-function startEditWitness(id){editingWitness=id;renderTeams();}
-function cancelEditWitness(){editingWitness=null;renderTeams();}
-async function saveEditWitness(id){
-  const w=$('ewWit_'+id).value.trim();
-  if(!w){toast('내용을 입력하세요');return;}
-  const nick=$('ewNick_'+id).value.trim();
-  const feel=$('ewFeel_'+id).value.trim();
-  const{error}=await sb.from('worksheets').update({witness:w,nickname:nick||null,emotions:feel||null}).eq('id',id);
-  if(error){toast('수정 실패 — 다시 시도해 주세요');return;}
-  editingWitness=null;toast('수정되었습니다');load();
-}
-async function deleteTeamRec(classCode,team){
-  if(!confirm('이 모둠의 기록(주제·메시지·역할 등)을 삭제할까요? 개인 목격 기록은 남습니다.'))return;
-  const{error}=await sb.from('moral_teams').delete().eq('class_code',classCode).eq('team',team);
-  if(error){toast('삭제 실패 — 다시 시도해 주세요');return;}
-  editingKey=null;toast('모둠 기록이 삭제되었습니다');load();
-}
-function startEditTeam(k){editingKey=k;renderTeams();}
-function cancelEditTeam(){editingKey=null;editTopic=null;renderTeams();}
-function pickEditTopic(t){
-  editTopic=t;
-  const a=$('etA'),b=$('etB');
-  if(a)a.classList.toggle('pick',t==='A');
-  if(b)b.classList.toggle('pick',t==='B');
-}
-async function saveEditTeam(classCode,team){
-  if(!editTopic){toast('주제 A 또는 B를 골라주세요');return;}
-  const{error}=await sb.from('moral_teams').upsert({
-    class_code:classCode,team:team,
-    top1:$('et1').value.trim(),top2:$('et2').value.trim(),top3:$('et3').value.trim(),
-    topic:editTopic,reason:$('etReason').value.trim(),objection:$('etObj').value.trim(),
-    message:$('etMsg').value.trim(),
-    poster_title:$('etTitle').value.trim(),poster_symbol:$('etSym').value.trim(),
-    poster_question:$('etQ').value.trim(),updated_at:new Date().toISOString()
-  },{onConflict:'class_code,team'});
-  if(error){toast('저장 실패 — 다시 시도해 주세요');return;}
-  editingKey=null;editTopic=null;toast('수정 내용이 저장되었습니다');load();
-}
-function renderEditForm(t){
-  editTopic=t.topic||null;
-  return `<div class="editform">
-    <div class="q">주제</div>
-    <div class="ab">
-      <button class="abtn A${editTopic==='A'?' pick':''}" id="etA" onclick="pickEditTopic('A')"><b>주제 A · 보이는 전쟁</b><span>국제 분쟁 · 난민 · 파괴와 인명 피해</span></button>
-      <button class="abtn B${editTopic==='B'?' pick':''}" id="etB" onclick="pickEditTopic('B')"><b>주제 B · 보이지 않는 전쟁</b><span>혐오 표현 · 온라인 갈등 · 편견 · 따돌림</span></button>
+function renderClassStat(){
+  const n=ws.length;
+  if(!n){$('classStat').innerHTML='<div class="empty">아직 집계할 기록이 없습니다.</div>';return;}
+  const cat={},emo={};
+  ws.forEach(r=>{
+    cat[r.category||0]=(cat[r.category||0]||0)+1;
+    (r.emotions||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(e=>emo[e]=(emo[e]||0)+1);
+  });
+  const max=Math.max(...Object.values(cat));
+  const bars=CATS.map((c,i)=>{
+    const v=cat[i]||0;
+    return `<div class="bar"><span>${c}</span><span><span class="fill" style="width:${max?Math.round(v/max*100):0}%;display:block"></span></span><span class="n">${v}</span></div>`;
+  }).join('');
+  const es=Object.entries(emo).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const teams=new Set(ws.map(r=>r.team)).size;
+  $('classStat').innerHTML=`
+    <div class="bigstat">
+      <div><b>${n}</b><span>개의 목격 기록</span></div>
+      <div><b>${teams}</b><span>모둠이 함께</span></div>
+      <div><b>${Object.keys(emo).length}</b><span>가지 감정</span></div>
     </div>
-    <div class="q">표어·명언 (카드뉴스 3개)</div>
-    <div class="row"><input type="text" id="et1" value="${esc(t.top1||'')}" placeholder="인용문 ①"></div>
-    <div class="row"><input type="text" id="et2" value="${esc(t.top2||'')}" placeholder="인용문 ②"></div>
-    <div class="row"><input type="text" id="et3" value="${esc(t.top3||'')}" placeholder="인용문 ③"></div>
-    <div class="q">우리 모둠이 고른 인상 깊은 데이터</div>
-    <textarea id="etReason" rows="2">${esc(t.reason||'')}</textarea>
-    <div class="q">그 데이터를 보고 느낀 점</div>
-    <input type="text" id="etObj" value="${esc(t.objection||'')}">
-    <div class="q">모둠 토의 내용과 결론</div>
-    <textarea id="etMsg" rows="2">${esc(t.message||'')}</textarea>
-    <div class="q">통계신문 사양</div>
-    <input type="text" id="etTitle" value="${esc(t.poster_title||'')}" placeholder="신문 제목">
-    <div class="row"><input type="text" id="etSym" value="${esc(t.poster_symbol||'')}" placeholder="부제"><input type="text" id="etQ" value="${esc(t.poster_question||'')}" placeholder="색상 콘셉트"></div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn" onclick="saveEditTeam('${esc(t.class_code)}','${esc(t.team)}')">저장</button>
-      <button class="btn ghost" onclick="cancelEditTeam()">취소</button>
-    </div>
-  </div>`;
+    <div class="bars">${bars}</div>
+    ${es.length?`<div class="emowrap">${es.map(([e,v])=>`<span class="emow" style="font-size:${Math.min(16+v*3,40)}px">${esc(e)}<b>${v}</b></span>`).join('')}</div>`:''}
+    <p class="small" style="margin-top:10px">가장 많이 목격된 유형과 가장 자주 적힌 감정이 커집니다. 이것이 <b>우리의 게르니카</b>입니다.</p>`;
 }
-async function load(){
-  const[w,t]=await Promise.all([
-    sb.from('worksheets').select('*').order('created_at'),
-    sb.from('moral_teams').select('*')]);
-  ws=w.data||[];tm=t.data||[];
-  renderBar();renderTeams();renderStat();renderByClass();
-}
-function renderByClass(){
-  const groups={};
-  byC(ws).forEach(r=>{const k=CLASS_LABEL[r.class_code]||(r.class_code||'미확인')+'(확인필요)';(groups[k]=groups[k]||[]).push(r);});
-  const order=[...CLASSES.map(c=>c.l),...Object.keys(groups).filter(k=>!CLASSES.some(c=>c.l===k))];
-  const keys=order.filter(k=>groups[k]&&groups[k].length);
-  $('byClassWrap').innerHTML=keys.length?keys.map(k=>
-    `<div class="wsec"><h3>${esc(k)} <small>${groups[k].length}건</small></h3>${renderWitnessList(groups[k])}</div>`).join('')
+function renderRead(){
+  const freq={};
+  syms.forEach(s=>{if(s.source)freq[s.source]=(freq[s.source]||0)+1;});
+  const ranked=Object.entries(freq).filter(([,c])=>c>1).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('topPicks').innerHTML=ranked.length?
+    `<div class="card strong"><ol style="padding-left:20px">${ranked.map(([txt,c])=>`<li style="margin:6px 0">${esc(txt)} <span class="small">— ${c}번 선택됨</span></li>`).join('')}</ol></div>`
+    :'<div class="empty">아직 상징으로 선택된 장면이 없습니다 — "상징 만들기"에서 목격 장면을 고르면 여기에 모입니다.</div>';
+  $('msgList').innerHTML=groups.length?
+    `<div class="wsgrid">${groups.map((g,i)=>groupCard(g,i)).join('')}</div>`
     :'<div class="empty">아직 기록이 없습니다.</div>';
 }
-const CLASS_SET=new Set(CLASSES.map(c=>c.v));
-const CLASS_LABEL=Object.fromEntries(CLASSES.map(c=>[c.v,c.l]));
-const showPrefix=()=>selClass==='전체'||selClass==='기타';
-const classPrefix=cc=>(CLASS_LABEL[cc]||cc+(cc.endsWith('반')?'':'반')+'(확인필요)')+' ';
-const byC=a=>{
-  if(selClass==='전체')return a;
-  if(selClass==='기타')return a.filter(x=>!CLASS_SET.has(x.class_code));
-  return a.filter(x=>x.class_code===selClass);
-};
-function renderBar(){
-  const found=new Set([...ws,...tm].map(r=>r.class_code));
-  const hasStray=[...found].some(c=>!CLASS_SET.has(c));
-  const list=['전체',...CLASSES.map(c=>c.v),...(hasStray?['기타']:[])];
-  if(!list.includes(selClass))selClass='전체';
-  $('classBar').innerHTML=list.map(c=>{
-    const label=c==='전체'?'전체 반':c==='기타'?'기타(반 확인 필요)':CLASS_LABEL[c];
-    return `<button class="${c===selClass?'on':''}" onclick="pickClass('${esc(c)}')">${label}</button>`;
-  }).join('');
+function groupCard(g,i){
+  const emo=[...g.emotions].slice(0,4).map(e=>`<span>${esc(e)}</span>`).join('');
+  const sel=pickedWs&&pickedWs.text===g.text;
+  return `<div class="wsc c${g.category} ${sel?'sel':''}" onclick="pickGroup(${i})">
+    <span class="cat">${esc(CATS[g.category]||CATS[0])}</span>
+    <div class="wit">${esc(g.text)}</div>
+    ${g.count>1?`<div class="sub">같은 내용 · ${g.count}번 기록됨</div>`:''}
+    ${emo?`<div class="emo">${emo}</div>`:''}
+    <button type="button" class="btn ghost" style="margin-top:10px;padding:7px 16px;font-size:13px">${sel?'담음 ✓':'담기'}</button>
+  </div>`;
 }
-function pickClass(c){selClass=c;renderBar();renderTeams();renderStat();renderByClass();}
-function renderWitnessRow(x){
-  if(isAdmin&&editingWitness===x.id){
-    return `<div class="wrow" style="flex-direction:column"><input type="text" id="ewWit_${x.id}" value="${esc(x.witness||'')}" placeholder="목격한 장면" style="margin-bottom:6px">
-      <input type="text" id="ewFeel_${x.id}" value="${esc(x.emotions||'')}" placeholder="느낀 점" style="margin-bottom:6px">
-      <input type="text" id="ewNick_${x.id}" value="${esc(x.nickname||'')}" placeholder="이름" style="margin-bottom:6px">
-      <div class="row" style="margin:0"><button class="btn" style="flex:0 0 auto;padding:8px 16px;font-size:13px" onclick="saveEditWitness('${x.id}')">저장</button><button class="btn ghost" style="flex:0 0 auto;padding:8px 16px;font-size:13px" onclick="cancelEditWitness()">취소</button></div></div>`;
-  }
-  return `<div class="wrow"><p>${esc(x.witness||'')}${isAdmin?`<span class="who">${esc(x.nickname||'익명')}</span>`:''}${x.emotions?`<br><span style="color:var(--ash);font-size:12px">→ 느낀 점: ${esc(x.emotions)}</span>`:''}</p>${isAdmin?`<button class="tedit" onclick="startEditWitness('${x.id}')">수정</button><button class="delx" onclick="deleteWitness('${x.id}')">삭제</button>`:''}</div>`;
+function renderSymSrc(){
+  $('symSrc').innerHTML=groups.length?groups.map((g,i)=>groupCard(g,i)).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
 }
-function renderWitnessList(w){
-  const byCat=CATS.map(()=>[]);
-  w.forEach(x=>{const i=(x.category>=0&&x.category<CATS.length)?x.category:0;byCat[i].push(x);});
-  return `<div class="wl">${CATS.map((c,i)=>byCat[i].length?
-    `<div class="q" style="margin-top:14px">${esc(c)} <small>${byCat[i].length}건</small></div>
-     ${byCat[i].map(renderWitnessRow).join('')}`:'').join('')}</div>`;
+function pickGroup(i){
+  pickedWs=groups[i]||null;
+  renderRead();renderSymSrc();refreshSubScene();
+  if(pickedWs)$('picked').innerHTML=`선택한 장면 — <b>${esc(pickedWs.text)}</b>${pickedWs.count>1?` <span class="small">(${pickedWs.count}번 기록됨)</span>`:''}`;
 }
-function renderTeams(){
-  const g={};
-  byC(ws).forEach(r=>{const k=(showPrefix()?classPrefix(r.class_code):'')+r.team;(g[k]=g[k]||{w:[],t:null}).w.push(r);});
-  byC(tm).forEach(r=>{const k=(showPrefix()?classPrefix(r.class_code):'')+r.team;(g[k]=g[k]||{w:[],t:null}).t=r;});
-  const keys=Object.keys(g).sort((a,b)=>a.localeCompare(b,'ko',{numeric:true}));
-  $('teamWrap').innerHTML=keys.length?keys.map(k=>{
-    const t=g[k].t,w=g[k].w;
-    const meta=t?[['인상 깊은 데이터',t.reason],['느낀 점',t.objection],['표어·명언',[t.top1,t.top2,t.top3].filter(Boolean).join(' · ')],
-      ['신문 제목',t.poster_title],['부제',t.poster_symbol],['색상 콘셉트',t.poster_question]]
-      .filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join(''):'';
-    return `<div class="team"><div class="thead"><b>${esc(k)}</b>
-      <span class="cnt">개인 기록 ${w.length}건</span>
-      ${isAdmin&&t?`<button class="tedit" onclick="startEditTeam('${esc(k)}')">${editingKey===k?'편집 중':'수정'}</button><button class="tedit danger" onclick="deleteTeamRec('${esc(t.class_code)}','${esc(t.team)}')">삭제</button>`:''}
-      </div>
-      <div class="tbody">
-      ${t&&t.message?`<div class="msg">${esc(t.message).replace(/\n/g,'<br>')}</div>`:'<div class="small">아직 모둠의견이 저장되지 않았습니다.</div>'}
-      ${meta?`<dl class="meta">${meta}</dl>`:''}
-      ${w.length?renderWitnessList(w):''}
-      ${isAdmin&&t&&editingKey===k?renderEditForm(t):''}
-      </div></div>`;}).join(''):'<div class="empty">아직 기록이 없습니다.</div>';
+async function addSymbol(){
+  const name=$('sName').value.trim(),mean=$('sMean').value.trim();
+  if(!name){toast('상징 이름을 입력하세요');return;}
+  if(!mean){toast('뜻풀이를 입력하세요');return;}
+  const{error}=await sb.from('art_symbols').insert({
+    class_code:'',team:'',name,meaning:mean,
+    source:pickedWs?pickedWs.text:null,author:'익명'});
+  if(error){toast('등재 실패');return;}
+  $('sName').value='';$('sMean').value='';toast('사전에 등재되었습니다');
 }
-function renderStatHTML(W,T){
-  if(!W.length&&!T.length)return '<div class="empty">집계할 기록이 없습니다.</div>';
-  const cat3=[['학교안에서',0],['온라인에서',0],['기타(가정·이웃·세계)',0]];
-  W.forEach(r=>{const c=r.category||0;cat3[c===0?0:c===1?1:2][1]++;});
-  const max=Math.max(1,...cat3.map(x=>x[1]));
-  return `
-  <div class="bigstat">
-    <div><b>${W.length}</b><span>목격 기록</span></div>
-    <div><b>${new Set(W.map(r=>r.team)).size||T.length}</b><span>모둠</span></div>
-  </div>
-  <div class="bars">${cat3.map(([c,v])=>
-    `<div class="brow"><span>${esc(c)}</span><span><span class="fill" style="width:${Math.round(v/max*100)}%"></span></span><span class="n">${v}</span></div>`).join('')}</div>
-  ${T.filter(x=>x.message).length?`<div class="guide" style="margin-top:18px"><b>모둠 메시지 모음</b><br>${T.filter(x=>x.message).map(x=>`· ${esc(x.team)} "${esc(x.message)}"`).join('<br>')}</div>`:''}`;
+function refreshSubScene(){
+  const el=$('subScene');if(!el)return;
+  el.innerHTML=pickedWs?`선택한 장면 — <b>${esc(pickedWs.text)}</b>`:'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다';
 }
-function renderStat(){
-  $('statWrap').innerHTML=renderStatHTML(byC(ws),byC(tm));
-}
-
-/* 우리의 기록 + 데이터 모아보기 — 전체 공개, 이름·반·모둠 비공개(관리자 모드에서만 확인 가능) */
-let dataInited=false;
-function initDataViews(){
-  if(!dataInited){
-    document.querySelectorAll('#pubTabs button').forEach(b=>b.onclick=()=>{
-      document.querySelectorAll('#pubTabs button').forEach(x=>x.classList.remove('on'));
-      document.querySelectorAll('#public .sec').forEach(s=>s.classList.remove('on'));
-      b.classList.add('on');$(b.dataset.t).classList.add('on');
-      if(b.dataset.t==='pubPrompt')fillPromptData();
-    });
-    document.querySelectorAll('#galTabs button').forEach(b=>b.onclick=()=>{
-      document.querySelectorAll('#galTabs button').forEach(x=>x.classList.remove('on'));
-      document.querySelectorAll('#gallery .sec').forEach(s=>s.classList.remove('on'));
-      b.classList.add('on');$(b.dataset.t).classList.add('on');
-    });
-    sb.channel('pub')
-      .on('postgres_changes',{event:'*',schema:'public',table:'worksheets'},loadPublic)
-      .on('postgres_changes',{event:'*',schema:'public',table:'moral_teams'},loadPublic).subscribe();
-    dataInited=true;
-  }
-  loadPublic();
-}
-async function loadPublic(){
-  const[w,t]=await Promise.all([
-    sb.from('worksheets').select('*').order('created_at'),
-    sb.from('moral_teams').select('*')]);
-  ws=w.data||[];tm=t.data||[];
-  renderPubOnline();renderPubSchool();renderPubEtc();renderGalleryStat();renderGalleryTeams();
-}
-let pickedIds=new Set();
-function togglePick(id){
-  if(pickedIds.has(id))pickedIds.delete(id);else pickedIds.add(id);
-  renderPubOnline();renderPubSchool();renderPubEtc();renderGalleryStat();
-}
-function publicRowHtml(x){
-  const id=String(x.id),picked=pickedIds.has(id);
-  return `<div class="msg" style="margin-top:10px;font-weight:400">${esc(x.witness||'')}
-    ${x.emotions?`<div style="margin-top:8px;font-size:13px;color:#5a5a5a">→ 느낀 점: ${esc(x.emotions)}</div>`:''}
-    <div style="margin-top:8px">
-      <button type="button" onclick="togglePick('${esc(id)}')" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;border:1px solid ${picked?'var(--ember)':'#ccc'};background:${picked?'var(--ember)':'#fff'};color:${picked?'#fff':'#555'};cursor:pointer">${picked?'담음 ✓':'담기'}</button>
-    </div></div>`;
-}
-function renderPubGroup(elId,list){
-  $(elId).innerHTML=`<p class="sub">${list.length}건</p>`+
-    (list.length?list.map(publicRowHtml).join(''):'<div class="empty">기록이 없습니다.</div>');
-}
-function renderPubOnline(){renderPubGroup('pubOnline',ws.filter(x=>(x.category||0)===1));}
-function renderPubSchool(){renderPubGroup('pubSchool',ws.filter(x=>(x.category||0)===0));}
-function renderPubEtc(){renderPubGroup('pubEtc',ws.filter(x=>{const c=x.category||0;return c===2||c===3;}));}
-function renderGalleryStat(){
-  $('galStatWrap').innerHTML=renderStatHTML(ws,tm);
-}
-function importPickedItems(){
-  const items=ws.filter(x=>pickedIds.has(String(x.id)));
-  if(!items.length){toast('담은 자료가 없습니다 — "우리의 기록"에서 먼저 담아주세요');return;}
-  const text=items.map(x=>`(${CATS[x.category||0]||CATS[0]}) ${x.witness||''}${x.emotions?` (느낀 점: ${x.emotions})`:''}`).join('\n');
-  $('toPicked').value=text;
-  toast(`${items.length}건을 불러왔습니다`);
-}
-function renderGalleryTeams(){
-  const teams=tm.filter(t=>(t.poster_title||'').trim()||(t.poster_symbol||'').trim()||(t.reason||'').trim()||(t.objection||'').trim()||(t.message||'').trim());
-  if(!teams.length){$('galTeams').innerHTML='<div class="empty">아직 등록된 모둠 기록이 없습니다.</div>';return;}
-  const messages=teams.map(t=>(t.message||'').trim()).filter(Boolean);
-  const msgBlock=messages.length?`<div class="wsec" style="border-left-color:var(--line)"><h3>메시지 모음</h3>
-    <div class="wl">${messages.map(m=>`<p>${esc(m).replace(/\n/g,' ')}</p>`).join('')}</div>
-  </div>`:'';
-  const sorted=[...teams].sort((a,b)=>{
-    const ka=(CLASS_LABEL[a.class_code]||a.class_code)+a.team,kb=(CLASS_LABEL[b.class_code]||b.class_code)+b.team;
-    return ka.localeCompare(kb,'ko',{numeric:true});
-  });
-  const cards=sorted.map(t=>{
-    const label=[CLASS_LABEL[t.class_code]||t.class_code,t.team].filter(Boolean).join(' · ');
-    const meta=[['인상 깊은 데이터',t.reason],['느낀 점',t.objection]]
-      .filter(x=>x[1]).map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join('');
-    return `<div class="team"><div class="thead"><b>${esc(label)}</b></div>
-      <div class="tbody">
-      ${t.poster_title?`<div class="msg" style="font-family:var(--serif);font-weight:700">${esc(t.poster_title)}${t.poster_symbol?`<div style="font-size:13px;font-weight:400;margin-top:4px;color:#5a5a5a">${esc(t.poster_symbol)}</div>`:''}</div>`:''}
-      ${meta?`<dl class="meta">${meta}</dl>`:''}
-      </div></div>`;
-  }).join('');
-  $('galTeams').innerHTML=msgBlock+cards;
-}
-
-/* 모둠의견 작성 — 다른 반·모둠 자료도 포함해 팀이 직접 분석·토의한 내용 */
-function loadTeamOpinion(){
-  const c=$('toClass').value,t=$('toTeam').value;
-  if(!c||!t){$('toStatus').textContent='';return;}
-  const rec=tm.find(x=>x.class_code===c&&x.team===t);
-  $('toTitle').value=rec&&rec.poster_title||'';
-  $('toSubtitle').value=rec&&rec.poster_symbol||'';
-  $('toColor').value=rec&&rec.poster_question||'';
-  $('toPicked').value=rec&&rec.reason||'';
-  $('toFeel').value=rec&&rec.objection||'';
-  $('toDiscuss').value=rec&&rec.message||'';
-  $('toQ1').value=rec&&rec.top1||'';
-  $('toQ2').value=rec&&rec.top2||'';
-  $('toQ3').value=rec&&rec.top3||'';
-  $('toStatus').textContent=rec?'저장된 내용을 불러왔습니다 — 이어서 수정할 수 있어요.':'아직 저장된 내용이 없습니다 — 새로 작성해 주세요.';
-}
-async function saveTeamOpinion(){
-  const c=$('toClass').value,t=$('toTeam').value;
-  if(!c){toast('반을 선택하세요');return;}
-  if(!t){toast('모둠을 골라주세요');return;}
-  const rec={
-    class_code:c,team:t,topic:'B',
-    poster_title:$('toTitle').value.trim(),
-    poster_symbol:$('toSubtitle').value.trim(),
-    poster_question:$('toColor').value.trim(),
-    reason:$('toPicked').value.trim(),
-    objection:$('toFeel').value.trim(),
-    message:$('toDiscuss').value.trim(),
-    top1:$('toQ1').value.trim(),top2:$('toQ2').value.trim(),top3:$('toQ3').value.trim(),
-    updated_at:new Date().toISOString()
+async function submitFinal(){
+  const num=$('subNum').value.trim(),name=$('subName').value.trim();
+  if(!num){toast('학번을 입력하세요');return;}
+  if(!name){toast('이름을 입력하세요');return;}
+  if(!SHEET_WEBHOOK_URL){toast('제출 연동 주소가 아직 설정되지 않았습니다 — 선생님께 문의하세요');return;}
+  const payload={
+    num,name,
+    scene:pickedWs?pickedWs.text:'',
+    symName:$('subSymName').value.trim(),
+    symMean:$('subSymMean').value.trim(),
+    intent:$('subIntent').value,
+    style:$('subStyle').value.trim()
   };
-  const{error}=await sb.from('moral_teams').upsert(rec,{onConflict:'class_code,team'});
-  if(error){toast('저장 실패 — 다시 시도해 주세요');return;}
-  const idx=tm.findIndex(x=>x.class_code===c&&x.team===t);
-  if(idx>=0)tm[idx]={...tm[idx],...rec};else tm.push(rec);
-  toast('모둠의견이 저장되었습니다');
-  $('toStatus').textContent='방금 저장되었습니다.';
+  try{
+    await fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    toast('제출되었습니다');
+  }catch(e){toast('제출 중 오류가 발생했습니다 — 인터넷 연결을 확인하세요');}
 }
-
-/* 통계신문 만들기 — AI 이미지 프롬프트 (모둠의견 + 실제 통계로 자동 생성) */
-function buildPrompt(){
-  const c=$('toClass').value,t=$('toTeam').value;
-  const rec=(c&&t)?tm.find(x=>x.class_code===c&&x.team===t):null;
-  const title=(rec&&rec.poster_title&&rec.poster_title.trim())||'우리 안의 게르니카';
-  const subtitle=(rec&&rec.poster_symbol&&rec.poster_symbol.trim())||'보이지 않는 전쟁';
-  const color=(rec&&rec.poster_question&&rec.poster_question.trim())||'다크 그레이, 슬레이트 블루, 연회색';
-  const picked=(rec&&rec.reason&&rec.reason.trim())||'';
-  const feel=(rec&&rec.objection&&rec.objection.trim())||'';
-  const discuss=(rec&&rec.message&&rec.message.trim())||'';
-  const quotes=[rec&&rec.top1,rec&&rec.top2,rec&&rec.top3].map(x=>(x||'').trim()).filter(Boolean);
-
-  const cat={};ws.forEach(x=>cat[x.category||0]=(cat[x.category||0]||0)+1);
-  const total=ws.length;
-  const statText=CATS.map((cn,i)=>`${cn} ${cat[i]||0}건`).join(', ');
-
-  const editorial=[
-    picked&&`우리 모둠이 고른 인상 깊은 데이터는 "${picked}"이고,`,
-    feel&&`그것을 보고 "${feel}"라고 느꼈습니다.`
-  ].filter(Boolean).join(' ')||'(비어있다면 아래 통계를 바탕으로 두 문장 이내의 짧은 사설을 대신 써줘)';
-
-  const quoteText=quotes.length?quotes.map(q=>`'${q}'`).join(', ')
-    :'(아래 통계를 참고해 어울리는 짧은 인용구 3개를 만들어줘)';
-
-  const checklistSrc=discuss
-    ?`아래 모둠 토의 내용과 결론을 참고해 2~4개의 짧은 문장으로 정리해줘 — "${discuss}"`
-    :'(아래 통계를 참고해 2~4개의 짧은 실천 수칙을 만들어줘)';
-
-  return `A4 세로 방향의 중학교 교육용 인포그래픽 신문 디자인. 전체적으로 차분하고 성찰적인 느낌을 주는 ${color} 색조를 사용했습니다. 스타일은 깔끔하고 현대적인 벡터 그래픽 레이아웃입니다. 위, 중간, 아래 세 단으로 구성됩니다.
-
-상단에는 크고 굵은 한글 글씨로 '${title}'라는 제호가 있고, 그 아래 작은 글씨로 '${subtitle}' 부제가 있습니다. 그 아래 사설 글 상자에는 ${editorial} 그 옆에는 소외와 갈등을 표현한 선화 일러스트레이션이 배치되어 있습니다.
-
-중간 섹션은 '우리가 모은 통계 — 총 ${total}건'라는 제목 아래 세 가지 인포그래픽으로 구성됩니다: 목격 장소(카테고리)별 건수를 보여주는 막대그래프, 카테고리 비율을 나타내는 파이 차트, 방관과 참여를 상징하는 픽토그램입니다. 각 그래프에는 다음 실제 데이터 수치를 그대로 반영해줘 — ${statText}.
-
-하단 섹션은 카드 뉴스 형태의 정사각형 상자 3개가 가로로 배열되어 있습니다. 각 상자에는 ${quoteText} 같은 인용구가 관련 아이콘과 함께 디자인되었습니다. 그 아래에는 체크 표시와 함께 간결한 실천 수칙 목록이 있습니다 — ${checklistSrc}
-
-전반적으로 정돈되고 가독성 있는 디자인이며 고화질입니다. 글자는 큼직하고 짧게만 넣어서 깨지거나 뭉개지지 않게 해줘(특히 사설 글 상자·차트 라벨·실천 수칙은 각각 한두 단어~한 문장 이내로 짧게). 실제 이름이나 특정 개인을 알아볼 수 있는 표현은 넣지 마.`;
+function renderDict(){
+  $('dict').innerHTML=syms.length?syms.map(s=>
+    `<div class="entry"><button class="x" onclick="delSym('${s.id}')">✕</button>
+      <div class="word">${esc(s.name)}</div>
+      ${s.role?`<span class="pos r${s.role}">${s.role}의 상징</span>`:''}
+      <div class="mean">${esc(s.meaning)}</div>
+      ${s.source?`<div class="src">출처 · ${esc(s.source)}</div>`:''}
+      <div class="by">${esc(s.author||'익명')} 지음</div></div>`).join('')
+    :'<div class="empty">아직 등재된 상징이 없습니다 — 첫 표제어의 주인이 되어보세요.</div>';
+  $('dCount').textContent=syms.length?`등재 ${syms.length}개`:'';
 }
-function fillPromptData(){
-  const c=$('toClass').value,t=$('toTeam').value;
-  $('ppTeamInfo').textContent=(c&&t)
-    ?`${CLASS_LABEL[c]||c} · ${t} 의 저장된 모둠의견으로 만들어졌습니다.`
-    :'선택된 모둠이 없어 예시 제목·부제로 만들어졌습니다. "모둠의견 작성" 탭에서 반·모둠을 고르고 저장하면 자동으로 반영돼요.';
-  $('pubPromptBox').value=buildPrompt();
-  toast('프롬프트를 만들었습니다');
-}
-function copyPrompt(){
-  const p=$('pubPromptBox').value.trim();
-  if(!p){toast('먼저 "프롬프트 만들기"를 눌러주세요');return;}
-  navigator.clipboard.writeText(p).then(()=>toast('프롬프트가 복사되었습니다')).catch(()=>toast('복사 실패'));
-}
-function openChatGPT(){
-  const p=$('pubPromptBox').value.trim();
-  if(!p){toast('먼저 "프롬프트 만들기"를 눌러주세요');return;}
-  navigator.clipboard.writeText(p).catch(()=>{});
-  window.open('https://chatgpt.com/?prompt='+encodeURIComponent(p),'_blank');
-  toast('ChatGPT를 열었습니다 (입력창이 비어있으면 붙여넣기 하세요)');
-}
-function openGemini(){
-  const p=$('pubPromptBox').value.trim();
-  if(!p){toast('먼저 "프롬프트 만들기"를 눌러주세요');return;}
-  navigator.clipboard.writeText(p).then(()=>toast('프롬프트를 복사했어요 — Gemini에 붙여넣기(Ctrl/Cmd+V) 하세요')).catch(()=>toast('복사 실패'));
-  window.open('https://gemini.google.com/app','_blank');
-}
+async function delSym(id){if(!confirm('이 상징을 지울까요?'))return;await sb.from('art_symbols').delete().eq('id',id);load();}
 </script>
 </body>
 </html>
