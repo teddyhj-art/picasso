@@ -205,8 +205,8 @@ const SB_URL  = 'https://xdajkxwszdraibozurih.supabase.co';
 const SB_ANON = 'sb_publishable_eonAHNJmziBkTVlG1QVU5w_fZgSsD0M';
 
 const CATS=['학교폭력·따돌림','혐오표현·조리돌림','차별·비하','관계 단절','온라인'];
-/* 구글 시트 제출 연동 — Apps Script 웹앱을 배포한 뒤 그 URL을 아래에 붙여넣으세요 (설정 전에는 "제출하기"가 안내만 표시합니다) */
-const SHEET_WEBHOOK_URL = '';
+/* 패들렛 제출 연동 — 이 활동을 위한 패들렛 보드 URL을 아래에 붙여넣으세요 (설정 전에는 "제출하기"가 안내만 표시합니다) */
+const PADLET_URL = 'https://padlet.com/teddyhj/padlet-s02365u1v9mkgf2a552i';
 const GUERNICA=[
  ['황소','어둠 속에서 홀로 빛을 받는 얼굴. 스페인 투우를 상징할까, 폭력 그 자체를 상징할까 — 피카소는 끝내 뜻을 밝히지 않았다.','b'],
  ['쓰러진 말','고통스럽게 울부짖으며 몸통이 갈라졌다. 짓밟힌 이들의 고통을 대신해 화면 한가운데서 가장 크게 운다.','p'],
@@ -231,20 +231,32 @@ const GUERNICA=[
 <!-- 본문 -->
 <div id="app">
   <div class="tabs">
-    <button class="on" data-t="tRead">1. 우리 기록 읽기</button>
-    <button data-t="tSee">2. 게르니카 감상</button>
-    <button data-t="tSym">3. 상징 만들기</button>
+    <button class="on" data-t="tSym">1. 상징 만들기</button>
+    <button data-t="tRead">2. 우리 기록 읽기</button>
+    <button data-t="tSee">3. 게르니카 감상</button>
     <button data-t="tPlan">4. 작품 구상 계획</button>
     <button data-t="tSubmit">5. 제출하기</button>
   </div>
 
-  <!-- 1. 도덕 기록 -->
-  <div class="sec on" id="tRead">
+  <!-- 1. 상징 만들기 -->
+  <div class="sec on" id="tSym">
+    <h2>상징 만들기</h2>
+    <p class="lead">"우리 기록 읽기"에서 담은 목격 장면·모둠 메시지를 바탕으로, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+
+    <div class="card strong">
+      <div class="picked" id="picked">↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
+      <label class="small">상징 이름 — 사물·형상으로</label>
+      <input type="text" id="sName" oninput="syncSymToSubmit()" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
+      <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
+      <textarea id="sMean" rows="3" oninput="syncSymToSubmit()" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
+      <p class="small" style="margin-top:10px">작성한 이름·뜻풀이는 "5. 제출하기" 탭에 자동으로 채워집니다.</p>
+    </div>
+  </div>
+
+  <!-- 2. 도덕 기록 -->
+  <div class="sec" id="tRead">
     <h2>우리가 목격한 것들</h2>
     <p class="lead">도덕 시간에 우리가 남긴 기록입니다. 하나씩 다시 읽으며 "우리의 전쟁"이 무엇인지 찾아봅니다.</p>
-    <h3>가장 많이 선택된 목격 데이터</h3>
-    <p class="small">친구들이 "상징 만들기"에서 가장 많이 골라 쓴 장면입니다.</p>
-    <div id="topPicks"></div>
     <h3>목격 데이터 메시지 모음 <span class="small" style="font-weight:400">— 많이 나온 순, 최대 20개</span></h3>
     <p class="small">비슷한 기록끼리 모아서 보여줍니다(너무 많으면 최대 20개만 추려서 보여줍니다). 마음에 드는 장면은 <b>담기</b>를 눌러 두면 "상징 만들기"에서 이어서 쓸 수 있습니다.</p>
     <div id="msgList"></div>
@@ -253,7 +265,7 @@ const GUERNICA=[
     <div id="teamMsgList"></div>
   </div>
 
-  <!-- 2. 감상 -->
+  <!-- 3. 감상 -->
   <div class="sec" id="tSee">
     <div class="substeps" id="subNav"></div>
 
@@ -314,23 +326,7 @@ const GUERNICA=[
         <p>기록이 이만큼 모였다는 것은 무엇을 뜻할까?</p>
         <p>피카소는 폭격을 그려 세상에 알렸다. 우리는 무엇을 그려서 알릴 수 있을까?</p>
       </div>
-      <div class="note strong">이제 우리 차례입니다. 다음 탭에서 <b>나의 상징</b>을 만듭니다.</div>
-    </div>
-  </div>
-
-  <!-- 3. 상징 만들기 + 제작 계획(개인작업) -->
-  <div class="sec" id="tSym">
-    <h2>상징 만들기</h2>
-    <p class="lead">"우리 기록 읽기"에서 담은 목격 장면·모둠 메시지를 바탕으로, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
-
-    <div class="card strong">
-      <div class="picked" id="picked">↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
-      <label class="small">상징 이름 — 사물·형상으로</label>
-      <input type="text" id="sName" oninput="syncSymToSubmit()" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
-      <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
-      <textarea id="sMean" rows="3" oninput="syncSymToSubmit()" placeholder="예: 아무도 열어주지 않아 스스로 잠겨버린 마음. 문 안쪽에는 손잡이가 없다."></textarea>
-      <div class="row"><button class="btn" onclick="addSymbol()">사전에 등재하기</button></div>
-      <p class="small" style="margin-top:10px">작성한 이름·뜻풀이는 "5. 제출하기" 탭에 자동으로 채워집니다.</p>
+      <div class="note strong">이제 우리 차례입니다. <b>"1. 상징 만들기"</b> 탭에서 나의 상징을 만듭니다.</div>
     </div>
   </div>
 
@@ -380,7 +376,7 @@ const GUERNICA=[
   <!-- 5. 제출하기 -->
   <div class="sec" id="tSubmit">
     <h2>제출하기</h2>
-    <p class="lead">학번과 이름을 적고, 오늘 고른 장면과 만든 상징, 표현 계획을 선생님께 제출합니다.</p>
+    <p class="lead">학번과 이름을 적고 "제출하기"를 누르면 아래 내용이 정리되어 복사되고, 패들렛이 새 탭으로 열립니다. 패들렛에서 <b>글쓰기</b>를 누르고 <b>붙여넣기(Ctrl+V)</b> 하면 제출이 끝납니다.</p>
     <div class="card strong">
       <label class="small">학번 <span class="small" style="font-weight:400">— 학년·반·번호 4자리, 예: 1101</span></label>
       <input type="text" id="subNum" placeholder="예: 1101" inputmode="numeric" maxlength="4" pattern="[0-9]{4}">
@@ -389,16 +385,17 @@ const GUERNICA=[
       <label class="small" style="display:block;margin-top:14px">선택한 목격 장면</label>
       <div class="picked" id="subScene">↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다</div>
       <label class="small" style="display:block;margin-top:14px">내가 만든 상징</label>
-      <div class="picked" id="symSummary">아직 "3. 상징 만들기"에서 작성한 내용이 없습니다.</div>
-      <p class="small" style="margin-top:6px">내용을 바꾸려면 <b>"3. 상징 만들기"</b> 탭에서 다시 적으면 여기에도 바로 반영됩니다.</p>
+      <div class="picked" id="symSummary">아직 "1. 상징 만들기"에서 작성한 내용이 없습니다.</div>
+      <p class="small" style="margin-top:6px">내용을 바꾸려면 <b>"1. 상징 만들기"</b> 탭에서 다시 적으면 여기에도 바로 반영됩니다.</p>
       <label class="small" style="display:block;margin-top:14px">표현하고 싶은 모습 — 구체적 아이디어</label>
       <p class="small" style="margin-top:2px">상징을 실제로 어떤 모습으로 그리거나 만들지, 눈에 보이듯 구체적으로 적어보세요.</p>
       <textarea id="subIdea" rows="4" placeholder="예: 화면 가운데에 커다란 닫힌 문을 검정 도화지로 오려 붙이고, 문틈 사이로만 흰색 한 줄기 빛이 새어나오게 표현하고 싶다."></textarea>
       <label class="small" style="display:block;margin-top:14px">표현 계획 요약</label>
       <div class="picked" id="planSummary">아직 정한 내용이 없습니다 — "4. 작품 구상 계획" 탭에서 골라보세요.</div>
       <p class="small" style="margin-top:6px">내용을 바꾸려면 <b>"4. 작품 구상 계획"</b> 탭에서 다시 고르면 여기에도 바로 반영됩니다.</p>
-      <div class="row"><button class="btn" onclick="submitFinal()">제출하기</button></div>
-      <p class="small" style="margin-top:10px">제출한 내용은 선생님이 확인하는 구글 시트에 기록됩니다.</p>
+      <div class="row"><button class="btn" onclick="submitFinal()">내용 복사하고 패들렛 열기</button></div>
+      <label class="small" style="display:block;margin-top:14px">제출 내용 미리보기 <span class="small" style="font-weight:400">— 복사가 안 됐다면 여기서 직접 선택해 복사하세요</span></label>
+      <textarea id="padletPreview" rows="8" readonly style="margin-top:6px;color:var(--smoke)" placeholder="'제출하기'를 누르면 여기에 정리된 내용이 표시됩니다"></textarea>
     </div>
   </div>
 </div>
@@ -410,7 +407,7 @@ const sb=supabase.createClient(SB_URL,SB_ANON);
 const $=id=>document.getElementById(id);
 const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900);}
-let ws=[],syms=[],groups=[],teamMsgs=[],pickedList=[];
+let ws=[],groups=[],teamMsgs=[],pickedList=[];
 const MAX_PICK=3;
 const MAX_LIST=20;
 /* 작품 구상 계획 — 여기서 고른 내용이 "제출하기"에도 그대로 반영된다 */
@@ -436,18 +433,16 @@ initPlan();
 syncSymToSubmit();
 load();
 sb.channel('art-global')
-  .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
   .on('postgres_changes',{event:'*',schema:'public',table:'worksheets'},load)
   .on('postgres_changes',{event:'*',schema:'public',table:'moral_teams'},load)
   .subscribe();
 
 async function load(){
-  const[w,s,tm]=await Promise.all([
+  const[w,tm]=await Promise.all([
     sb.from('worksheets').select('*').order('created_at'),
-    sb.from('art_symbols').select('*').order('created_at',{ascending:false}),
     sb.from('moral_teams').select('*')
   ]);
-  ws=w.data||[];syms=s.data||[];
+  ws=w.data||[];
   groups=groupedWs();
   teamMsgs=groupedTeamMsgs(tm.data||[]);
   renderRead();renderClassStat();refreshSubScene();renderPicked();
@@ -574,12 +569,6 @@ function renderClassStat(){
     <p class="small" style="margin-top:10px">가장 많이 목격된 유형과 가장 자주 적힌 감정이 커집니다. 이것이 <b>우리의 게르니카</b>입니다.</p>`;
 }
 function renderRead(){
-  const freq={};
-  syms.forEach(s=>{if(s.source)freq[s.source]=(freq[s.source]||0)+1;});
-  const ranked=Object.entries(freq).filter(([,c])=>c>1).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  $('topPicks').innerHTML=ranked.length?
-    `<div class="card strong"><ol style="padding-left:20px">${ranked.map(([txt,c])=>`<li style="margin:6px 0">${esc(txt)} <span class="small">— ${c}번 선택됨</span></li>`).join('')}</ol></div>`
-    :'<div class="empty">아직 상징으로 선택된 장면이 없습니다 — "상징 만들기"에서 목격 장면을 고르면 여기에 모입니다.</div>';
   $('msgList').innerHTML=groups.length?
     `<div class="wsgrid">${groups.map((g,i)=>groupCard(g,i,'ws')).join('')}</div>`
     :'<div class="empty">아직 기록이 없습니다.</div>';
@@ -619,22 +608,12 @@ function renderPicked(){
     `선택한 장면·메시지 (${pickedList.length}/${MAX_PICK})<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${p.type==='team'?'[모둠] ':''}${esc(p.text)}${p.count>1?` <span class="small">— ${p.count}번</span>`:''}</li>`).join('')}</ul>`
     :`↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 ${MAX_PICK}개까지, 없이도 만들 수 있어요)`;
 }
-async function addSymbol(){
-  const name=$('sName').value.trim(),mean=$('sMean').value.trim();
-  if(!name){toast('상징 이름을 입력하세요');return;}
-  if(!mean){toast('뜻풀이를 입력하세요');return;}
-  const{error}=await sb.from('art_symbols').insert({
-    class_code:'',team:'',name,meaning:mean,
-    source:pickedList.length?pickedList.map(p=>p.text).join(' / '):null,author:'익명'});
-  if(error){console.error('art_symbols insert error:',error);toast('사전 등재는 실패했지만 제출하기에는 영향 없어요 — '+(error.message||error.hint||JSON.stringify(error)));return;}
-  toast('사전에도 등재되었습니다');
-}
 function syncSymToSubmit(){
   const el=$('symSummary');if(!el)return;
   const name=$('sName').value.trim(),mean=$('sMean').value.trim();
   el.innerHTML=(name||mean)?
     `<b>${esc(name||'(이름 없음)')}</b>${mean?`<br>${esc(mean)}`:''}`
-    :'아직 "3. 상징 만들기"에서 작성한 내용이 없습니다.';
+    :'아직 "1. 상징 만들기"에서 작성한 내용이 없습니다.';
 }
 function refreshSubScene(){
   const el=$('subScene');if(!el)return;
@@ -642,40 +621,45 @@ function refreshSubScene(){
     `선택한 장면·메시지 (${pickedList.length}개)<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${p.type==='team'?'[모둠] ':''}${esc(p.text)}</li>`).join('')}</ul>`
     :'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 담으면 여기에 표시됩니다';
 }
+function buildSubmissionText(){
+  const num=$('subNum').value.trim()||'(미입력)';
+  const name=$('subName').value.trim()||'(미입력)';
+  const scene=pickedList.length?pickedList.map(p=>(p.type==='team'?'[모둠] ':'')+p.text).join(' / '):'(선택한 장면 없음)';
+  const symName=$('sName').value.trim()||'(이름 없음)';
+  const symMean=$('sMean').value.trim()||'(뜻풀이 없음)';
+  const idea=$('subIdea').value.trim()||'(작성 없음)';
+  const planParts=[];
+  if(planState.intent)planParts.push(`표현 의도 ${planState.intent}`);
+  if(planState.form)planParts.push(`형태 ${planState.form}`);
+  if(planState.method)planParts.push(`재료·방법 ${planState.method}`);
+  if(planState.pointColor)planParts.push(`색 ${planState.pointColor}`);
+  const note=$('colorNote').value.trim();
+  if(note)planParts.push(`포인트 컬러 메모 ${note}`);
+  return[
+    `학번: ${num}`,
+    `이름: ${name}`,
+    `선택한 장면·메시지: ${scene}`,
+    `상징 이름: ${symName}`,
+    `뜻풀이: ${symMean}`,
+    `표현하고 싶은 모습: ${idea}`,
+    `표현 계획: ${planParts.length?planParts.join(' / '):'(미정)'}`
+  ].join('\n');
+}
 async function submitFinal(){
   const num=$('subNum').value.trim(),name=$('subName').value.trim();
   if(!num){toast('학번을 입력하세요');return;}
   if(!name){toast('이름을 입력하세요');return;}
-  if(!SHEET_WEBHOOK_URL){toast('제출 연동 주소가 아직 설정되지 않았습니다 — 선생님께 문의하세요');return;}
-  const payload={
-    num,name,
-    scene:pickedList.length?pickedList.map(p=>p.text).join(' / '):'',
-    symName:$('sName').value.trim(),
-    symMean:$('sMean').value.trim(),
-    idea:$('subIdea').value.trim(),
-    intent:planState.intent,
-    form:planState.form,
-    method:planState.method,
-    pointColor:planState.pointColor,
-    colorNote:$('colorNote').value.trim()
-  };
+  const text=buildSubmissionText();
+  $('padletPreview').value=text;
+  let copied=false;
   try{
-    await fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-    toast('제출되었습니다');
-  }catch(e){toast('제출 중 오류가 발생했습니다 — 인터넷 연결을 확인하세요');}
+    await navigator.clipboard.writeText(text);
+    copied=true;
+  }catch(e){copied=false;}
+  if(!PADLET_URL){toast(copied?'내용이 복사되었습니다. 패들렛 주소가 아직 설정되지 않아 직접 이동해 붙여넣어 주세요.':'패들렛 주소가 아직 설정되지 않았습니다 — 아래 내용을 직접 복사해 두세요.');return;}
+  window.open(PADLET_URL,'_blank','noopener');
+  toast(copied?'내용이 복사되었습니다 — 패들렛에서 Ctrl+V로 붙여넣으세요':'패들렛이 열렸습니다 — 아래 미리보기 내용을 직접 복사해 붙여넣으세요');
 }
-function renderDict(){
-  $('dict').innerHTML=syms.length?syms.map(s=>
-    `<div class="entry"><button class="x" onclick="delSym('${s.id}')">✕</button>
-      <div class="word">${esc(s.name)}</div>
-      ${s.role?`<span class="pos r${s.role}">${s.role}의 상징</span>`:''}
-      <div class="mean">${esc(s.meaning)}</div>
-      ${s.source?`<div class="src">출처 · ${esc(s.source)}</div>`:''}
-      <div class="by">${esc(s.author||'익명')} 지음</div></div>`).join('')
-    :'<div class="empty">아직 등재된 상징이 없습니다 — 첫 표제어의 주인이 되어보세요.</div>';
-  $('dCount').textContent=syms.length?`등재 ${syms.length}개`:'';
-}
-async function delSym(id){if(!confirm('이 상징을 지울까요?'))return;await sb.from('art_symbols').delete().eq('id',id);load();}
 </script>
 </body>
 </html>
