@@ -245,9 +245,12 @@ const GUERNICA=[
     <h3>가장 많이 선택된 목격 데이터</h3>
     <p class="small">친구들이 "상징 만들기"에서 가장 많이 골라 쓴 장면입니다.</p>
     <div id="topPicks"></div>
-    <h3>목격 데이터 메시지 모음 <span class="small" style="font-weight:400">— 많이 나온 순</span></h3>
-    <p class="small">비슷한 기록끼리 모아서 보여줍니다. 마음에 드는 장면은 <b>담기</b>를 눌러 두면 "상징 만들기"에서 이어서 쓸 수 있습니다.</p>
+    <h3>목격 데이터 메시지 모음 <span class="small" style="font-weight:400">— 많이 나온 순, 최대 20개</span></h3>
+    <p class="small">비슷한 기록끼리 모아서 보여줍니다(너무 많으면 최대 20개만 추려서 보여줍니다). 마음에 드는 장면은 <b>담기</b>를 눌러 두면 "상징 만들기"에서 이어서 쓸 수 있습니다.</p>
     <div id="msgList"></div>
+    <h3>모둠 메시지 모음 <span class="small" style="font-weight:400">— 공감되는 내용 담기</span></h3>
+    <p class="small">각 모둠이 토의하고 정리한 메시지입니다. 마음에 와닿는 내용을 담아 주제를 정하는 데 활용해 보세요.</p>
+    <div id="teamMsgList"></div>
   </div>
 
   <!-- 2. 감상 -->
@@ -318,7 +321,7 @@ const GUERNICA=[
   <!-- 3. 상징 만들기 + 제작 계획(개인작업) -->
   <div class="sec" id="tSym">
     <h2>상징 만들기</h2>
-    <p class="lead">목격 장면을 최대 3개까지 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
+    <p class="lead">목격 장면이나 모둠 메시지를 최대 3개까지 골라, 사람이 아닌 사물·형상으로 옮겨 적습니다. 이 상징을 바탕으로 개인 작업으로 인물의 일부, 상황, 또는 상징 하나를 그립니다.</p>
 
     <h3>우리 상징 이름 · 뜻풀이 사전</h3>
     <div class="dictbar">
@@ -329,7 +332,7 @@ const GUERNICA=[
     <h3>목격 장면 고르기 <span class="small" style="font-weight:400">— 최대 3개</span></h3>
     <div class="wsgrid" id="symSrc"></div>
     <div class="card strong">
-      <div class="picked" id="picked">↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
+      <div class="picked" id="picked">↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 3개까지, 없이도 만들 수 있어요)</div>
       <label class="small">상징 이름 — 사물·형상으로</label>
       <input type="text" id="sName" placeholder="예: 닫힌 문, 꺼진 화면, 한쪽만 남은 신발">
       <label class="small" style="display:block;margin-top:14px">뜻풀이 — 이 상징은 무엇을 대신하는가</label>
@@ -410,8 +413,9 @@ const sb=supabase.createClient(SB_URL,SB_ANON);
 const $=id=>document.getElementById(id);
 const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900);}
-let ws=[],syms=[],groups=[],pickedList=[];
+let ws=[],syms=[],groups=[],teamMsgs=[],pickedList=[];
 const MAX_PICK=3;
+const MAX_LIST=20;
 
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
@@ -426,27 +430,57 @@ load();
 sb.channel('art-global')
   .on('postgres_changes',{event:'*',schema:'public',table:'art_symbols'},load)
   .on('postgres_changes',{event:'*',schema:'public',table:'worksheets'},load)
+  .on('postgres_changes',{event:'*',schema:'public',table:'moral_teams'},load)
   .subscribe();
 
 async function load(){
-  const[w,s]=await Promise.all([
+  const[w,s,tm]=await Promise.all([
     sb.from('worksheets').select('*').order('created_at'),
-    sb.from('art_symbols').select('*').order('created_at',{ascending:false})
+    sb.from('art_symbols').select('*').order('created_at',{ascending:false}),
+    sb.from('moral_teams').select('*')
   ]);
   ws=w.data||[];syms=s.data||[];
   groups=groupedWs();
+  teamMsgs=groupedTeamMsgs(tm.data||[]);
   renderRead();renderSymSrc();renderDict();renderClassStat();refreshSubScene();renderPicked();
+}
+/* 공백·문장부호 차이만 있는 비슷한 문장을 하나로 묶기 위한 정규화 키 */
+function normKey(s){return(s||'').replace(/[\s.,!?·"'’‘“”\-–—]/g,'');}
+/* 목록이 너무 길면(스크롤 과다) 최대 MAX_LIST개로 추려서 보여준다 — 여러 번 겹친 내용을 우선하고, 나머지는 무작위로 채운다 */
+function sampleCapped(list,max){
+  if(list.length<=max)return list;
+  const repeated=list.filter(g=>g.count>1);
+  const singles=list.filter(g=>g.count===1);
+  for(let i=singles.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [singles[i],singles[j]]=[singles[j],singles[i]];
+  }
+  return repeated.concat(singles).slice(0,max).sort((a,b)=>b.count-a.count);
 }
 function groupedWs(){
   const map=new Map();
   ws.forEach(r=>{
-    const key=(r.witness||'').trim();
-    if(!key)return;
-    if(!map.has(key))map.set(key,{text:key,category:r.category||0,count:0,emotions:new Set()});
+    const raw=(r.witness||'').trim();
+    if(!raw)return;
+    const key=normKey(raw)||raw;
+    if(!map.has(key))map.set(key,{text:raw,category:r.category||0,count:0,emotions:new Set()});
     const g=map.get(key);g.count++;
     (r.emotions||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(e=>g.emotions.add(e));
   });
-  return[...map.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
+  const list=[...map.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
+  return sampleCapped(list,MAX_LIST);
+}
+function groupedTeamMsgs(rows){
+  const map=new Map();
+  rows.forEach(r=>{
+    const raw=(r.message||'').trim();
+    if(!raw)return;
+    const key=normKey(raw)||raw;
+    if(!map.has(key))map.set(key,{text:raw,team:r.team||'',count:0});
+    map.get(key).count++;
+  });
+  const list=[...map.values()].sort((a,b)=>b.count-a.count||a.text.localeCompare(b.text));
+  return sampleCapped(list,MAX_LIST);
 }
 function subGo(n,btn){
   document.querySelectorAll('.substeps button').forEach(x=>x.classList.remove('on'));
@@ -488,39 +522,46 @@ function renderRead(){
     `<div class="card strong"><ol style="padding-left:20px">${ranked.map(([txt,c])=>`<li style="margin:6px 0">${esc(txt)} <span class="small">— ${c}번 선택됨</span></li>`).join('')}</ol></div>`
     :'<div class="empty">아직 상징으로 선택된 장면이 없습니다 — "상징 만들기"에서 목격 장면을 고르면 여기에 모입니다.</div>';
   $('msgList').innerHTML=groups.length?
-    `<div class="wsgrid">${groups.map((g,i)=>groupCard(g,i)).join('')}</div>`
+    `<div class="wsgrid">${groups.map((g,i)=>groupCard(g,i,'ws')).join('')}</div>`
     :'<div class="empty">아직 기록이 없습니다.</div>';
+  $('teamMsgList').innerHTML=teamMsgs.length?
+    `<div class="wsgrid">${teamMsgs.map((g,i)=>groupCard(g,i,'team')).join('')}</div>`
+    :'<div class="empty">아직 저장된 모둠 메시지가 없습니다.</div>';
 }
-function groupCard(g,i){
-  const emo=[...g.emotions].slice(0,4).map(e=>`<span>${esc(e)}</span>`).join('');
-  const sel=pickedList.some(p=>p.text===g.text);
-  return `<div class="wsc c${g.category} ${sel?'sel':''}" onclick="pickGroup(${i})">
-    <span class="cat">${esc(CATS[g.category]||CATS[0])}</span>
+function groupCard(g,i,type){
+  const sel=pickedList.some(p=>p.type===type&&p.text===g.text);
+  const tag=type==='team'
+    ?`<span class="cat" style="background:var(--ink)">${esc(g.team?g.team+' 모둠':'모둠 메시지')}</span>`
+    :`<span class="cat">${esc(CATS[g.category]||CATS[0])}</span>`;
+  const emo=type==='ws'?[...g.emotions].slice(0,4).map(e=>`<span>${esc(e)}</span>`).join(''):'';
+  return `<div class="wsc ${type==='ws'?'c'+g.category:''} ${sel?'sel':''}" onclick="pickGroup('${type}',${i})">
+    ${tag}
     <div class="wit">${esc(g.text)}</div>
-    ${g.count>1?`<div class="sub">같은 내용 · ${g.count}번 기록됨</div>`:''}
+    ${g.count>1?`<div class="sub">같은 내용 · ${g.count}번${type==='team'?' 겹침':' 기록됨'}</div>`:''}
     ${emo?`<div class="emo">${emo}</div>`:''}
     <button type="button" class="btn ${sel?'':'ghost'}" style="margin-top:10px;padding:7px 16px;font-size:13px">${sel?'담음 ✓ · 빼기':'담기'}</button>
   </div>`;
 }
 function renderSymSrc(){
-  $('symSrc').innerHTML=groups.length?groups.map((g,i)=>groupCard(g,i)).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
+  $('symSrc').innerHTML=groups.length?groups.map((g,i)=>groupCard(g,i,'ws')).join(''):'<div class="empty">불러올 기록이 없습니다.</div>';
 }
-function pickGroup(i){
-  const g=groups[i];if(!g)return;
-  const idx=pickedList.findIndex(p=>p.text===g.text);
+function pickGroup(type,i){
+  const src=type==='team'?teamMsgs:groups;
+  const g=src[i];if(!g)return;
+  const idx=pickedList.findIndex(p=>p.type===type&&p.text===g.text);
   if(idx>=0){
     pickedList.splice(idx,1);
   }else{
-    if(pickedList.length>=MAX_PICK){toast(`목격 장면은 최대 ${MAX_PICK}개까지 담을 수 있어요`);return;}
-    pickedList.push(g);
+    if(pickedList.length>=MAX_PICK){toast(`장면·메시지는 최대 ${MAX_PICK}개까지 담을 수 있어요`);return;}
+    pickedList.push({...g,type});
   }
   renderRead();renderSymSrc();refreshSubScene();renderPicked();
 }
 function renderPicked(){
   const el=$('picked');if(!el)return;
   el.innerHTML=pickedList.length?
-    `선택한 장면 (${pickedList.length}/${MAX_PICK})<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${esc(p.text)}${p.count>1?` <span class="small">— ${p.count}번 기록됨</span>`:''}</li>`).join('')}</ul>`
-    :`↑ 위에서 목격 기록을 고르면 여기에 표시됩니다 (최대 ${MAX_PICK}개까지, 없이도 만들 수 있어요)`;
+    `선택한 장면·메시지 (${pickedList.length}/${MAX_PICK})<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${p.type==='team'?'[모둠] ':''}${esc(p.text)}${p.count>1?` <span class="small">— ${p.count}번</span>`:''}</li>`).join('')}</ul>`
+    :`↑ 목격 기록이나 모둠 메시지를 고르면 여기에 표시됩니다 (최대 ${MAX_PICK}개까지, 없이도 만들 수 있어요)`;
 }
 async function addSymbol(){
   const name=$('sName').value.trim(),mean=$('sMean').value.trim();
@@ -529,14 +570,14 @@ async function addSymbol(){
   const{error}=await sb.from('art_symbols').insert({
     class_code:'',team:'',name,meaning:mean,
     source:pickedList.length?pickedList.map(p=>p.text).join(' / '):null,author:'익명'});
-  if(error){toast('등재 실패');return;}
+  if(error){console.error('art_symbols insert error:',error);toast('등재 실패 — '+(error.message||error.hint||JSON.stringify(error)));return;}
   $('sName').value='';$('sMean').value='';toast('사전에 등재되었습니다');
 }
 function refreshSubScene(){
   const el=$('subScene');if(!el)return;
   el.innerHTML=pickedList.length?
-    `선택한 장면 (${pickedList.length}개)<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${esc(p.text)}</li>`).join('')}</ul>`
-    :'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 장면을 담으면 여기에 표시됩니다';
+    `선택한 장면·메시지 (${pickedList.length}개)<ul style="margin:6px 0 0 18px">${pickedList.map(p=>`<li>${p.type==='team'?'[모둠] ':''}${esc(p.text)}</li>`).join('')}</ul>`
+    :'↑ "우리 기록 읽기" 또는 "상징 만들기"에서 담으면 여기에 표시됩니다';
 }
 async function submitFinal(){
   const num=$('subNum').value.trim(),name=$('subName').value.trim();
